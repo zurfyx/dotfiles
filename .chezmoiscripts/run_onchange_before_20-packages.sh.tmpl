@@ -1,0 +1,10 @@
+#!/bin/bash
+# Install the handful of packages these dotfiles depend on.
+# The hash below makes chezmoi re-run this script whenever the Brewfile changes:
+# Brewfile hash: {{ include "Brewfile" | sha256sum }}
+set -eu
+
+# No brew, no problem — Linux boxes and fresh Macs just skip this.
+command -v brew >/dev/null 2>&1 || exit 0
+
+brew bundle --file="$CHEZMOI_SOURCE_DIR/Brewfile"

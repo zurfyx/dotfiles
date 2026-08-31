@@ -1,0 +1,7 @@
+# Repo furniture — lives here, never installed to $HOME.
+README.md
+LICENSE
+.gitleaks.toml
+.githooks
+.github
+Brewfile

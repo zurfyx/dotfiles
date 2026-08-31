@@ -1,0 +1,92 @@
+# History (interactive)
+HISTSIZE=130000
+SAVEHIST=130000
+HISTFILE="$HOME/.zsh_history"
+setopt SHARE_HISTORY
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_REDUCE_BLANKS
+setopt INC_APPEND_HISTORY
+
+
+# If you truly want "unlimited-ish" history like HISTFILESIZE=-1 in bash:
+# zsh doesn't use HISTFILESIZE the same way; SAVEHIST controls what gets saved.
+
+
+# Prompt: show colored exit codes for last pipeline
+function _prompt_pipestatus() {
+  local -a ps
+  ps=(${pipestatus[@]})
+
+
+  local out="" s
+  for s in "${ps[@]}"; do
+    if [[ $s -eq 0 ]]; then
+      out+="%F{green}0%f "
+    else
+      out+="%F{red}${s}%f "
+    fi
+  done
+  out="${out% }"
+  PROMPT="[Exit: ${out}] $ "
+}
+
+
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd _prompt_pipestatus
+
+
+# Aliases
+alias .="cd ."
+alias ..="cd .."
+alias ...="cd ../.."
+alias ....="cd ../../.."
+alias .....="cd ../../../.."
+alias Code="cd $HOME/Code"
+alias la="ls -la"
+alias lint-staged=""
+alias 7z="7zz"
+alias brew-clean="brew autoremove && brew cleanup"
+alias codexd="codex --dangerously-bypass-approvals-and-sandbox"
+
+# Functions
+incognito () {
+  env -i HOME="$HOME" USER="$USER" PATH="$PATH" TERM="$TERM" \
+    HISTFILE=/dev/null HISTSIZE=0 SAVEHIST=0 \
+    zsh -f
+}
+
+# Navi CLI
+export PATH="$HOME/.navi/bin:$PATH"
+
+# bun completions
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# tmux helpers
+# tm [name]  -> attach to session (create if missing); defaults to "main"
+tm() {
+  tmux new-session -A -s "${1:-main}"
+}
+# tml -> list sessions
+alias tml='tmux ls'
+
+# clauded — Claude Code wrapper with sandbox-flag probing; lives in ~/.local/bin/clauded
+alias claudedt="clauded"
+alias killcisco='sudo kill -9 $(sudo lsof -nP -iUDP:53 -iTCP:53 | grep com.cisco | head -1 | awk '\''{print $2}'\'')'
+
+# After a brew upgrade/install, resync the tailscaled system daemon if it drifted.
+# See ~/.local/bin/tailscaled-resync for the why.
+brew() {
+  command brew "$@"
+  local ret=$?
+  if [[ -o interactive && -t 1 && ( $1 == upgrade || $1 == install || $1 == reinstall ) ]]; then
+    command -v tailscaled-resync >/dev/null 2>&1 && tailscaled-resync
+  fi
+  return $ret
+}
+
+# Machine-local overrides (private aliases, employer config). Never tracked.
+[[ -r "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"

@@ -1,0 +1,25 @@
+[user]
+  name = Gerard Rovira
+  email = {{ .email }}
+[alias]
+  tree = log --oneline --graph --color --all --decorate
+  sbranch = for-each-ref --count=10 --sort=-committerdate refs/heads/ --format='%(refname:short)'
+	pr = "!f() { if [ $# -lt 1 ]; then echo \"Usage: git pr <id> [<remote>]  # assuming <remote>[=origin] is on GitHub\"; else git checkout -q \"$(git rev-parse --verify HEAD)\" && git fetch -fv \"${2:-origin}\" pull/\"$1\"/head:pr/\"$1\" && git checkout pr/\"$1\"; fi; }; f"
+	ac = "!f() { git add . && git commit -m \"$*\"; }; f"
+	acp = "!f() { set -e; branch=$(git symbolic-ref --short HEAD); git add .; git commit -m \"$*\"; if git rev-parse --abbrev-ref --symbolic-full-name @{u} >/dev/null 2>&1; then git push; exit 0; fi; for remote in origin $(git remote); do if git push --dry-run \"$remote\" \"$branch\" >/dev/null 2>&1; then git push -u \"$remote\" \"$branch\"; exit 0; fi; done; echo \"No writable remote found\" >&2; exit 1; }; f"
+	sync = "!f() { branch=$(git symbolic-ref --short HEAD) || exit 1; git fetch upstream || exit 1; git rebase upstream/$branch || exit 1; git push origin $branch; }; f"
+[init]
+	defaultBranch = main
+[feature]
+	manyFiles = true
+[core]
+	untrackedCache = true
+	fsmonitor = true
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[include]
+	# Machine-local additions (work identity, credential helpers). Silently skipped if absent.
+	path = ~/.gitconfig.local

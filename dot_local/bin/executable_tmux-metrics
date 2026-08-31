@@ -1,0 +1,198 @@
+#!/bin/sh
+# CPU / memory / disk / battery segments for the tmux status bar.
+# Portable across Linux (/proc) and macOS (sysctl + vm_stat + iostat).
+# Output embeds tmux #[...] style markup, which tmux re-expands.
+#
+# Usage: tmux-metrics [client_width]
+# Below WIDE_AT columns the core count and memory total are dropped so the
+# window list keeps enough room to render without tmux's <...> truncation.
+set -u
+
+WIDE_AT=130
+width=${1:-999}
+[ "$width" -ge "$WIDE_AT" ] 2>/dev/null && wide=1 || wide=0
+
+OS=$(uname -s)
+CACHE_DIR="${TMPDIR:-/tmp}/tmux-metrics-$(id -u)"
+mkdir -p "$CACHE_DIR" 2>/dev/null || true
+
+SEP='#[fg=colour235,nobold] · '
+LABEL='#[fg=colour235,nobold]'
+
+# Value styles by threshold. Escalation is by weight, not hue: warm hues either
+# wash out against green (yellow) or carry no luminance contrast at all (red).
+# Bold ANSI black/white gets brightened by most terminals, so black is colour16
+# from the palette. Every value is closed with #[default] to drop back to the
+# status style.
+colour_for() {
+	if [ "$1" -ge "$3" ]; then
+		printf '#[fg=colour231,bg=colour88,bold]'
+	elif [ "$1" -ge "$2" ]; then
+		printf '#[fg=colour16,bold]'
+	else
+		printf '#[fg=colour16,nobold]'
+	fi
+}
+
+# GNU stat and BSD stat share no flags
+mtime() {
+	stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null || echo 0
+}
+
+ncpu() {
+	nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1
+}
+
+# ─── cpu ─────────────────────────────────────────────────────────────────────
+# Linux exposes cumulative jiffies, so a delta against the previous tick is both
+# free and exact. macOS exposes no equivalent counter to the shell; the only
+# accurate source is a 1s iostat sample, far too slow to run inline, so it is
+# refreshed in the background and the bar reads the cache.
+
+sample_cpu_linux() {
+	awk '/^cpu /{t=0; for (i=2;i<=9;i++) t+=$i; print t, $5+$6; exit}' /proc/stat
+}
+
+cpu_linux() {
+	prev_file="$CACHE_DIR/cpu"
+	now=$(sample_cpu_linux)
+	prev=''
+	[ -r "$prev_file" ] && prev=$(cat "$prev_file" 2>/dev/null)
+	if [ -z "$prev" ]; then
+		# cold cache: take our own short sample rather than reporting nothing
+		sleep 0.2
+		prev="$now"
+		now=$(sample_cpu_linux)
+	fi
+	printf '%s\n' "$now" >"$prev_file" 2>/dev/null
+	awk -v p="$prev" -v n="$now" 'BEGIN {
+		split(p, a, " "); split(n, b, " ")
+		dt = b[1] - a[1]; di = b[2] - a[2]
+		if (dt <= 0) { print 0; exit }
+		v = 100 * (dt - di) / dt
+		if (v < 0) v = 0
+		if (v > 100) v = 100
+		printf "%d", v + 0.5
+	}'
+}
+
+cpu_darwin() {
+	cache="$CACHE_DIR/cpu"
+	lock="$cache.lock"
+	now=$(date +%s)
+
+	[ -d "$lock" ] && [ $((now - $(mtime "$lock"))) -ge 30 ] && rmdir "$lock" 2>/dev/null
+
+	stale=1
+	[ -r "$cache" ] && [ $((now - $(mtime "$cache"))) -lt 5 ] && stale=0
+	if [ "$stale" -eq 1 ] && mkdir "$lock" 2>/dev/null; then
+		(
+			# idle is the 4th column from the end, whatever number of disks
+			# iostat decides to report before it
+			iostat -c 2 -w 1 2>/dev/null |
+				awk 'END { v = 100 - $(NF-3); if (v < 0) v = 0; printf "%d", v + 0.5 }' \
+					>"$cache.tmp" && mv "$cache.tmp" "$cache"
+			rmdir "$lock" 2>/dev/null
+		) >/dev/null 2>&1 &
+	fi
+
+	if [ -s "$cache" ]; then
+		cat "$cache"
+	else
+		# first tick only: sum of per-process CPU, what Activity Monitor shows
+		ps -A -o %cpu= 2>/dev/null |
+			awk -v n="$(ncpu)" '{s+=$1} END {v=s/n; if (v>100) v=100; printf "%d", v+0.5}'
+	fi
+}
+
+# ─── memory ──────────────────────────────────────────────────────────────────
+# prints: <percent> <used GiB> <total GiB>
+
+mem_linux() {
+	# used = total - available, matching what `free` calls used
+	awk '/^MemTotal:/{t=$2} /^MemAvailable:/{a=$2} END {
+		u = t - a
+		printf "%d %.0f %.0f", (t ? 100 * u / t : 0), u / 1048576, t / 1048576
+	}' /proc/meminfo
+}
+
+mem_darwin() {
+	# active + wired + compressed is what Activity Monitor reports as used
+	vm_stat 2>/dev/null | sed 's/\.$//' | awk -F': *' \
+		-v ps="$(sysctl -n hw.pagesize 2>/dev/null || echo 4096)" \
+		-v total="$(sysctl -n hw.memsize 2>/dev/null || echo 0)" '
+		{ gsub(/^ +| +$/, "", $1); v[$1] = $2 }
+		END {
+			u = (v["Pages active"] + v["Pages wired down"] \
+			     + v["Pages occupied by compressor"]) * ps
+			printf "%d %.0f %.0f", (total ? 100 * u / total : 0), \
+				u / 1073741824, total / 1073741824
+		}'
+}
+
+# ─── disk ────────────────────────────────────────────────────────────────────
+
+disk_pct() {
+	target=/
+	# APFS splits the boot volume and / is the read-only system snapshot
+	[ -d /System/Volumes/Data ] && target=/System/Volumes/Data
+	df -Pk "$target" 2>/dev/null | awk 'NR==2 {gsub("%", "", $5); print $5+0}'
+}
+
+# ─── battery ─────────────────────────────────────────────────────────────────
+# Prints the percentage only while actually running down. On AC the number is
+# just noise, so the whole segment disappears and the bar gets shorter.
+
+battery_linux() {
+	for bat in /sys/class/power_supply/BAT*; do
+		[ -r "$bat/capacity" ] || continue
+		[ "$(cat "$bat/status" 2>/dev/null)" = "Discharging" ] || return 0
+		cat "$bat/capacity" 2>/dev/null
+		return 0
+	done
+}
+
+battery_darwin() {
+	out=$(pmset -g batt 2>/dev/null)
+	case $out in
+	*'Battery Power'*) ;;
+	*) return 0 ;;
+	esac
+	printf '%s' "$out" | grep -Eo '[0-9]+%' | head -1 | tr -d '%'
+}
+
+# ─── assemble ────────────────────────────────────────────────────────────────
+
+case $OS in
+Darwin)
+	cpu=$(cpu_darwin)
+	mem=$(mem_darwin)
+	bat=$(battery_darwin)
+	;;
+*)
+	cpu=$(cpu_linux)
+	mem=$(mem_linux)
+	bat=$(battery_linux)
+	;;
+esac
+
+# shellcheck disable=SC2086  # deliberate split into $1/$2/$3
+set -- $mem
+mem_pct=${1:-0} mem_used=${2:-0} mem_total=${3:-0}
+
+dsk=$(disk_pct)
+[ -n "${dsk:-}" ] || dsk=0
+
+printf '%scpu %s%s%%#[default]' "$LABEL" "$(colour_for "$cpu" 70 90)" "$cpu"
+[ "$wide" -eq 1 ] && printf '%s/%sc' "$LABEL" "$(ncpu)"
+
+printf '%s%smem %s%sG#[default]' "$SEP" "$LABEL" "$(colour_for "$mem_pct" 75 90)" "$mem_used"
+[ "$wide" -eq 1 ] && printf '%s/%sG' "$LABEL" "$mem_total"
+
+printf '%s%sdsk %s%s%%#[default]' "$SEP" "$LABEL" "$(colour_for "$dsk" 80 92)" "$dsk"
+
+if [ -n "$bat" ]; then
+	# thresholds run the other way for battery, so style off the headroom
+	printf '%s%sbat %s%s%%#[default]' "$SEP" "$LABEL" \
+		"$(colour_for "$((100 - bat))" 75 90)" "$bat"
+fi

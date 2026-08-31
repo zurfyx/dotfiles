@@ -1,0 +1,80 @@
+#!/bin/zsh
+# preupdate - quit all foreground apps before a macOS update restart.
+#
+# Why: the Software Update restart path does NOT honour the "Reopen windows
+# when logging back in" checkbox. loginwindow sets its own TAL option
+# (TALRestore) for upgrade installs instead of TALUseUserPref, so whatever is
+# running when the update reboots comes back. Quitting first is the only
+# reliable way to get a clean post-update session.
+#
+# Usage:
+#   preupdate            # quit everything except the keep-list
+#   preupdate -n         # dry run, just print what would be quit
+#   preupdate -f         # force kill anything still alive after 10s
+#
+# Run it, wait for the desktop to be empty, then start the update.
+
+set -u
+
+# Apps to leave running. Add to taste.
+KEEP=(Finder Terminal iTerm2 Ghostty)
+
+DRY=0
+FORCE=0
+while getopts "nf" opt; do
+  case $opt in
+    n) DRY=1 ;;
+    f) FORCE=1 ;;
+    *) print -u2 "usage: preupdate [-n] [-f]"; exit 2 ;;
+  esac
+done
+
+running=(${(f)"$(osascript -e 'tell application "System Events" to get name of every process whose background only is false' 2>/dev/null | tr ',' '\n' | sed 's/^ *//;s/ *$//')"})
+
+to_quit=()
+for app in $running; do
+  [[ -z $app ]] && continue
+  if (( ${KEEP[(Ie)$app]} )); then
+    print "keep  $app"
+  else
+    to_quit+=("$app")
+  fi
+done
+
+if (( ${#to_quit} == 0 )); then
+  print "nothing to quit"
+  exit 0
+fi
+
+for app in $to_quit; do
+  print "quit  $app"
+  (( DRY )) || osascript -e "tell application \"$app\" to quit" 2>/dev/null
+done
+
+(( DRY )) && exit 0
+
+# Give apps a chance to put up save dialogs and shut down cleanly.
+sleep 10
+
+still=()
+for app in $to_quit; do
+  if pgrep -x "$app" >/dev/null 2>&1; then
+    still+=("$app")
+  fi
+done
+
+if (( ${#still} )); then
+  print "\nstill running: ${still[*]}"
+  if (( FORCE )); then
+    for app in $still; do
+      print "kill  $app"
+      pkill -x "$app"
+    done
+  else
+    print "these probably have unsaved work or a modal dialog."
+    print "handle them, or re-run with -f to force kill."
+    exit 1
+  fi
+fi
+
+print "\nclean. safe to run the update now."

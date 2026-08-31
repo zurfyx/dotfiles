@@ -1,0 +1,28 @@
+#!/usr/bin/env zsh
+# clauded — launch claude free of cmux session state
+# Problem: claude launched under cmux inherits child-session env vars that make Remote Control 401, and the bundled cmux shim CLI may lack --dangerously-disable-osx-sandbox
+# Cause: cmux exports its child/bridge session variables into every shell it spawns and puts its shim CLI first on PATH, so a plain `claude` inherits both
+# Fix: strips the session vars, resolves the real claude binary past the shims, probes --help for the sandbox flag, and execs claude with the flags it supports
+# Requires: zsh (uses `whence -ap`), claude
+set -u
+
+# zsh-native path enumeration; `command -v -a` is a bashism (no output) in zsh.
+claude_bin=$(whence -ap claude 2>/dev/null | grep -v 'cmux-cli-shims' | head -1)
+[ -n "$claude_bin" ] || claude_bin=/usr/local/bin/claude
+
+typeset -a strip=(-u CLAUDE_CODE_CHILD_SESSION -u CLAUDE_CODE_BRIDGE_SESSION_ID
+                  -u CLAUDE_CODE_PARENT_SESSION_ID -u CMUX_SURFACE_ID)
+
+# Probe --help once per invocation — no cache: the probe costs one fast
+# subprocess and is not worth caching across invocations. Some builds print
+# their option list to stderr, so capture both streams (2>&1) or the flag is
+# never detected.
+sandbox=no
+if env "${strip[@]}" "$claude_bin" --help 2>&1 | grep -q -- '--dangerously-disable-osx-sandbox'; then
+  sandbox=yes
+fi
+
+typeset -a flags=(--dangerously-skip-permissions)
+[[ $sandbox == yes ]] && flags+=(--dangerously-disable-osx-sandbox)
+
+exec env "${strip[@]}" "$claude_bin" "${flags[@]}" "$@"

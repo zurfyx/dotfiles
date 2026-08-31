@@ -1,0 +1,33 @@
+shell-integration = zsh
+
+macos-titlebar-style = tabs
+window-padding-x = 12
+font-size = 20
+mouse-hide-while-typing = false
+# 1 GB
+scrollback-limit = 1073741824
+
+clipboard-paste-protection = false
+
+# Move between splits (no prefix)
+keybind = super+left=goto_split:left
+keybind = super+down=goto_split:bottom
+keybind = super+up=goto_split:top
+keybind = super+right=goto_split:right
+
+# Prefix-style actions (Cmd+A instead of Ctrl+A)
+keybind = super+a>left=new_split:left
+keybind = super+a>down=new_split:down
+keybind = super+a>up=new_split:up
+keybind = super+a>right=new_split:right
+keybind = super+a>z=toggle_split_zoom
+keybind = super+a>n=next_tab
+keybind = super+a>p=previous_tab
+
+# Tmux
+keybind = ctrl+b=text:\x02
+
+# Other
+keybind = super+n=new_window
+keybind = super+r=reload_config
+window-save-state = always

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# tailscaled-resync — bring the tailscaled system daemon back in sync with Homebrew
+# Problem: brew upgrade tailscale leaves the running tailscaled system daemon on the old version (client version != tailscaled server version)
+# Cause: tailscaled install-system-daemon deploys a root-owned COPY to /usr/local/bin, so Homebrew upgrades only the CLI
+# Fix: compares the daemon's version against Homebrew's and re-runs install-system-daemon from the Homebrew copy when they differ
+# Requires: Homebrew, tailscale (brew formula), sudo
+#
+# The brew() wrapper in .zshrc calls this automatically after upgrade/install;
+# it is also safe to run manually any time.
+set -u
+
+command -v brew >/dev/null 2>&1 || exit 0
+
+dest=/usr/local/bin/tailscaled
+src="$(brew --prefix)/bin/tailscaled"
+[[ -x "$dest" && -x "$src" ]] || exit 0
+
+have=$("$dest" --version 2>/dev/null | head -1)
+want=$("$src" --version 2>/dev/null | head -1)
+[[ -n "$want" && "$have" != "$want" ]] || exit 0
+
+echo "tailscaled: daemon is ${have:-unknown}, Homebrew has $want — resyncing system daemon" >&2
+# Must be invoked from the Homebrew prefix: run from /usr/local/bin/tailscaled it
+# deletes its own target first, then skips the copy and leaves a dead plist.
+sudo "$src" install-system-daemon && "$dest" --version | head -1

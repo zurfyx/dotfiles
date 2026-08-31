@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# pre-commit — last line of defense before anything lands in a public repo.
+# Two checks: nothing leaky in the staged diff, and the right identity on
+# the commit. CI runs the same scans, but catching it here means no history
+# rewrite later.
+set -euo pipefail
+
+# 1. Scan the staged changes with gitleaks (secrets + the custom vocabulary
+#    rules in .gitleaks.toml).
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks is not installed — brew install gitleaks" >&2
+  exit 1
+fi
+gitleaks git --pre-commit --staged --redact --config .gitleaks.toml
+
+# 2. Commits to this repo must use the GitHub noreply address, never a
+#    personal or work email.
+email="$(git config user.email || true)"
+case "$email" in
+  *@users.noreply.github.com)
+    ;;
+  *)
+    echo "pre-commit: commit email '${email:-<unset>}' is not a GitHub noreply address." >&2
+    echo "Fix it with:" >&2
+    echo "  git config user.email '193447+zurfyx@users.noreply.github.com'" >&2
+    exit 1
+    ;;
+esac

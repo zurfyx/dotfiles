@@ -1,0 +1,189 @@
+{
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Editor
+  // ─────────────────────────────────────────────────────────────────────────────
+  "editor.fontSize": 17,
+  "editor.tabSize": 2,
+  "editor.detectIndentation": true,
+  "editor.rulers": [
+    100
+  ],
+  "editor.wordWrapColumn": 100,
+  "editor.cursorBlinking": "smooth",
+  "editor.cursorSmoothCaretAnimation": "on",
+  "editor.dragAndDrop": true,
+  "editor.minimap.enabled": false,
+  
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Workbench / UI
+  // ─────────────────────────────────────────────────────────────────────────────
+  "breadcrumbs.enabled": false,
+  "workbench.editor.enablePreview": false,
+  "workbench.editor.wrapTabs": true,
+  "workbench.editor.empty.hint": "hidden",
+  "workbench.layoutControl.enabled": false,
+  "workbench.colorCustomizations": {
+    "[Default Dark Modern]": {
+      // This is the pill (and often what makes that top row feel too light)
+      "commandCenter.background": "#1e1e1f",
+      "commandCenter.activeBackground": "#1e1e1f",
+      "commandCenter.border": "#00000000",
+      // These help the surrounding chrome blend so the seam disappears
+      "activityBar.background": "#1e1e1f",
+      "sideBar.background": "#1e1e1f",
+      // This one is the usual culprit for the “big light strip” under the native bar
+      "editorGroupHeader.noTabsBackground": "#1e1e1f",
+      "editorGroupHeader.tabsBackground": "#1e1e1f",
+      "sideBarSectionHeader.background": "#1e1e1f",
+      "sideBarSectionHeader.foreground": "#CCCCCC",
+      "sideBarSectionHeader.border": "#00000000",
+      "terminal.background": "#1e1e1f",
+      "panel.background": "#1e1e1f",
+    },
+  },
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Explorer / Diff
+  // ─────────────────────────────────────────────────────────────────────────────
+  "explorer.openEditors.visible": 0,
+  "explorer.confirmDragAndDrop": false,
+  "diffEditor.ignoreTrimWhitespace": false,
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Window
+  // ─────────────────────────────────────────────────────────────────────────────
+  "window.nativeTabs": true,
+  "window.openNewWindowsInNativeTabs": true,
+  "window.systemColorTheme": "dark",
+  "window.confirmBeforeClose": "always",
+  // Command Center toggle
+  "window.commandCenter": false,
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Git
+  // ─────────────────────────────────────────────────────────────────────────────
+  "git.confirmSync": false,
+  "git.autofetch": false,
+  "git.enableSmartCommit": true,
+  "git.enableCommitSigning": true,
+  "git.autorefresh": true,
+  "git.decorations.enabled": true,
+  "git.untrackedChanges": "hidden",
+  "git.statusLimit": 1000,
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Language features / validation
+  // ─────────────────────────────────────────────────────────────────────────────
+  "html.autoClosingTags": false,
+  "javascript.validate.enable": false,
+  // TypeScript performance / behavior
+  "typescript.tsserver.maxTsServerMemory": 4096,
+  "typescript.disableAutomaticTypeAcquisition": true,
+  "typescript.tsserver.experimental.enableProjectDiagnostics": false,
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Formatting (per-language)
+  // ─────────────────────────────────────────────────────────────────────────────
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+  },
+  "[python]": {
+    "editor.formatOnType": true,
+  },
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Terminal
+  // ─────────────────────────────────────────────────────────────────────────────
+  "terminal.integrated.enableMultiLinePasteWarning": "never",
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Search / File watching
+  // ─────────────────────────────────────────────────────────────────────────────
+  "files.watcherExclude": {
+    "**/.git/**": true,
+    "**/.pnpm/**": true,
+    "**/node_modules/**": true,
+    "**/node_modules/.pnpm/**": true,
+    "**/dist/**": true,
+    "**/build/**": true,
+    "**/.next/**": true
+  },
+  "search.exclude": {
+    "**/.git/**": true,
+    "**/.pnpm/**": true,
+    "**/node_modules/**": true,
+    "**/node_modules/.pnpm/**": true,
+    "**/dist/**": true,
+    "**/build/**": true,
+    "**/.next/**": true,
+    "**/bower_components/**": true,
+    "**/*.code-search/**": true
+  },
+  "search.followSymlinks": false,
+  "search.ripgrep.maxThreads": 2,
+  "search.useIgnoreFiles": true,
+  "search.useGlobalIgnoreFiles": true,
+  "search.useParentIgnoreFiles": true,
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Extensions
+  // ─────────────────────────────────────────────────────────────────────────────
+  "code-runner.saveFileBeforeRun": true,
+  "redhat.telemetry.enabled": true,
+  // GitLens UI tweaks
+  "gitlens.currentLine.enabled": false,
+  "gitlens.hovers.currentLine.over": "line",
+  "gitlens.codeLens.enabled": false,
+  "gitlens.hovers.enabled": false,
+  // GitLens AI (updated format)
+  "gitlens.ai.model": "openai:gpt-4-turbo",
+  // Copilot
+  "github.copilot.enable": {
+    "*": false,
+    "plaintext": false,
+    "markdown": false,
+    "scminput": false,
+  },
+  "github.copilot.nextEditSuggestions.enabled": true,
+  // Copilot Chat / tools
+  "chat.tools.terminal.autoApprove": {
+    "npm test": true,
+    "/^cat \\.husky/pre-commit \\| od -c$/": {
+      "approve": true,
+      "matchCommandLine": true,
+    },
+    "npm run type-check": true,
+  },
+  "git.replaceTagsWhenPull": true,
+  "yaml.disableSchemaDetection": [
+    "**/docker-compose.yml",
+    "**/docker-compose.yaml",
+    "**/docker-compose.*.yml",
+    "**/docker-compose.*.yaml",
+    "**/compose.yml",
+    "**/compose.yaml",
+    "**/compose.*.yml",
+    "**/compose.*.yaml",
+    "**/.github/workflows/*.yml",
+    "**/.github/workflows/*.yaml",
+    "**/.gitea/workflows/*.yml",
+    "**/.gitea/workflows/*.yaml",
+    "**/.forgejo/workflows/*.yml",
+    "**/.forgejo/workflows/*.yaml"
+  ],
+  "gitlens.views.scm.grouped.views": {
+    "commits": true,
+    "branches": true,
+    "remotes": true,
+    "stashes": true,
+    "tags": true,
+    "worktrees": true,
+    "contributors": true,
+    "fileHistory": false,
+    "repositories": true,
+    "searchAndCompare": false,
+    "launchpad": true
+  },
+}

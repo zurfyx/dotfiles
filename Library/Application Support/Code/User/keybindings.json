@@ -1,0 +1,25 @@
+// Place your key bindings in this file to override the defaults
+// https://code.visualstudio.com/docs/getstarted/keybindings#_when-clause-contexts
+[
+  {
+    "key": "ctrl+j",
+    "command": "workbench.action.terminal.focus",
+    "when": "editorFocus"
+  },
+  {
+    "key": "ctrl+j",
+    "command": "workbench.action.focusActiveEditorGroup",
+    "when": "terminalFocus"
+  },
+  {
+    "key": "ctrl+l",
+    "command": "extension.jumpy-word"
+  },
+  {
+    "key": "ctrl+e",
+    "command": "editor.action.showHover",
+    "when": "editorTextFocus"
+  },
+  { "key": "shift+cmd+t", "command": "workbench.action.newWindowTab" },
+  { "key": "shift+cmd+m", "command": "workbench.action.mergeAllWindowTabs" }
+]

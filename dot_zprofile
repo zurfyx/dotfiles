@@ -1,0 +1,30 @@
+# Locale / editor (environment)
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export EDITOR=vim
+
+
+# Homebrew behavior
+export HOMEBREW_NO_ENV_HINTS=1
+
+
+# Ruby / build flags (environment)
+export LDFLAGS="-L$HOME/homebrew/opt/ruby/lib"
+export CPPFLAGS="-I$HOME/homebrew/opt/ruby/include"
+export PKG_CONFIG_PATH="$HOME/homebrew/opt/ruby/lib/pkgconfig"
+
+
+# PATH (prefer a single export, ordered: user/bin > local tools > brew > system)
+path=(
+  "$HOME/homebrew/opt/node@24/bin"
+  "$HOME/bin"
+  "$HOME/.local/bin"
+  "$HOME/.yarn/bin"
+  "$HOME/.config/yarn/global/node_modules/.bin"
+  "$HOME/homebrew/opt/ruby/bin"
+  "$HOME/homebrew/bin"
+  "$HOME/homebrew/sbin"
+  $path
+)
+typeset -U path
+export PATH
