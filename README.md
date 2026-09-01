@@ -19,18 +19,20 @@ macOS dotfiles for two Macs, managed with chezmoi. The parts worth stealing: a t
 ## Install
 
 ```sh
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply zurfyx
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --source ~/Code/dotfiles --apply zurfyx
 ```
 
 Or look first:
 
 ```sh
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init zurfyx
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --source ~/Code/dotfiles zurfyx
 chezmoi diff
 chezmoi apply
 ```
 
 Note that `chezmoi apply` also runs `brew bundle` against a short Brewfile. Later, `chezmoi update` pulls the latest and applies it.
+
+The source lives at `~/Code/dotfiles` (set via `sourceDir` in the config template), so the repo is a normal project directory rather than hidden under `~/.local/share`.
 
 ## Layout
 
