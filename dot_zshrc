@@ -55,9 +55,6 @@ incognito () {
     zsh -f
 }
 
-# Navi CLI
-export PATH="$HOME/.navi/bin:$PATH"
-
 # bun completions
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
