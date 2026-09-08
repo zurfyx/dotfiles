@@ -55,15 +55,23 @@ rendered with local data. `run_once_` scripts run a single time ever;
 `run_onchange_` scripts run whenever their content changes.
 Anything under `.chezmoiscripts/` runs during `chezmoi apply` but is never installed to `$HOME`.
 
+## What's parameterized and why
+
+Almost nothing. `chezmoi init` asks no questions, and the only template in the repo is `.chezmoi.toml.tmpl`, which just points chezmoi at this directory. Names, aliases, paths, font sizes, my email — all literal values sitting in the files where you can read them.
+
+A value leaves a tracked file for exactly two reasons:
+
+1. **Publishing it would cause harm.** Employer tool names, hostnames, other people's email addresses, absolute home paths, anything secret. Those live in `~/.zshrc.local` and `~/.gitconfig.local`, outside this repo, and `.gitleaks.toml` enforces their absence.
+2. **It genuinely differs between my own machines.** That is what chezmoi templates are for. Nothing needs one today.
+
+"Someone forking this would want a different value" is deliberately not on the list. This is my config, published so it can be read and borrowed from, not a framework to be configured. Every variable added for a hypothetical stranger puts one more layer between a reader and the line they came for. Copy the file, change the name, move on.
+
 ## Local overrides
 
 - `~/.zshrc.local` is sourced last, if present.
 - `~/.gitconfig.local` is included, if present.
-- Nothing is prompted on first apply: values that are personal but harmless to publish stay literal in the files.
 
-What gets pulled out of a tracked file, and the only two reasons it happens: publishing the value would harm me (employer vocabulary, hostnames, absolute home paths, other people's addresses), or it genuinely differs between my own machines. "A forker would want a different value" is not one of the reasons — read the file, copy the line, change it.
-
-Private and work-specific config lives in those files, outside this repo.
+Both are untracked and machine-local; private and work-specific config lives there rather than here. A machine without them still gets a complete, working setup.
 
 ## Guardrails
 
