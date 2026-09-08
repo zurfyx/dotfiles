@@ -59,7 +59,7 @@ Anything under `.chezmoiscripts/` runs during `chezmoi apply` but is never insta
 
 - `~/.zshrc.local` is sourced last, if present.
 - `~/.gitconfig.local` is included, if present.
-- Machine identity (email, role) is prompted once by chezmoi on first apply.
+- Machine identity (the git email) is prompted once by chezmoi on first apply.
 
 Private and work-specific config lives in those files, outside this repo.
 

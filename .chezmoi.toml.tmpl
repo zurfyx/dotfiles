@@ -1,11 +1,9 @@
 {{- $email := promptStringOnce . "email" "Git email for this machine" -}}
-{{- $role := promptChoiceOnce . "role" "Machine role" (list "work" "personal") -}}
 
 sourceDir = "{{ .chezmoi.homeDir }}/Code/dotfiles"
 
 [data]
     email = {{ $email | quote }}
-    role = {{ $role | quote }}
 
 [git]
     autoCommit = false
