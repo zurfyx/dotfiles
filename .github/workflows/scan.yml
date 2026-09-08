@@ -27,11 +27,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: every commit author must be a GitHub noreply address
+      - name: every commit author is an expected identity
         run: |
-          bad="$(git log --format='%ae' | sort -u | grep -v '@users\.noreply\.github\.com$' || true)"
+          bad="$(git log --format='%ae' | sort -u | grep -vE '(^gerard\.rovira\.sanchez@gmail\.com$|@users\.noreply\.github\.com$)' || true)"
           if [ -n "$bad" ]; then
-            echo "Commits found with non-noreply author emails:"
+            echo "Commits found with unexpected author emails:"
             echo "$bad"
             exit 1
           fi

@@ -76,7 +76,7 @@ Both are untracked and machine-local; private and work-specific config lives the
 ## Guardrails
 
 - [gitleaks](https://github.com/gitleaks/gitleaks) runs as a pre-commit hook and in CI, with custom vocabulary rules on top of the defaults.
-- Commits use a GitHub noreply address.
+- Commit identity is checked against a short allowed list, so a stray work account cannot author here.
 - The repo contains no secrets, no hostnames, no identity.
 
 ## License

@@ -13,16 +13,22 @@ if ! command -v gitleaks >/dev/null 2>&1; then
 fi
 gitleaks git --pre-commit --staged --redact --config .gitleaks.toml
 
-# 2. Commits to this repo must use the GitHub noreply address, never a
-#    personal or work email.
+# 2. Sanity-check the identity on the commit. This is not about hiding the
+#    address — it is already public in every commit on GitHub — but about
+#    catching a surprise identity (a work account, an unconfigured machine)
+#    before it lands in a public repo.
 email="$(git config user.email || true)"
 case "$email" in
-  *@users.noreply.github.com)
+  gerard.rovira.sanchez@gmail.com|*@users.noreply.github.com)
+    ;;
+  '')
+    echo "pre-commit: no commit email configured." >&2
+    echo "  git config user.email 'gerard.rovira.sanchez@gmail.com'" >&2
+    exit 1
     ;;
   *)
-    echo "pre-commit: commit email '${email:-<unset>}' is not a GitHub noreply address." >&2
-    echo "Fix it with:" >&2
-    echo "  git config user.email '193447+zurfyx@users.noreply.github.com'" >&2
+    echo "pre-commit: unexpected commit email '$email' for a public repo." >&2
+    echo "If that is deliberate, add it to the allowed list in .githooks/pre-commit." >&2
     exit 1
     ;;
 esac
