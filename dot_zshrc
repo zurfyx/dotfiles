@@ -72,7 +72,27 @@ alias tml='tmux ls'
 
 # clauded — Claude Code wrapper with sandbox-flag probing; lives in ~/.local/bin/clauded
 alias claudedt="clauded"
-alias killcisco='sudo kill -9 $(sudo lsof -nP -iUDP:53 -iTCP:53 | grep com.cisco | head -1 | awk '\''{print $2}'\'')'
+# Cisco AnyConnect's socket extension grabs port 53 and answers for everything, so
+# nothing resolves off-VPN. Same presentation as the tailscaled case further down:
+# `ping 1.1.1.1` fine, no page loads. Kill the listener — it respawns clean.
+# (lsof truncates COMMAND to 9 chars, so the extension shows up as exactly "com.cisco".)
+kill-cisco-dns() {
+  local pids
+  pids=$(sudo lsof -nP -iUDP:53 -iTCP:53 2>/dev/null | awk '/^com\.cisco/ {print $2}' | sort -u)
+  if [[ -z $pids ]]; then
+    print -u2 "kill-cisco-dns: nothing from Cisco is holding port 53"
+    return 1
+  fi
+  print -u2 "kill-cisco-dns: killing ${(j: :)${(f)pids}}"
+  sudo kill -9 ${=pids} && sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder
+}
+alias killcisco=kill-cisco-dns  # muscle memory
+
+# When tailscaled dies it leaves ~68 split-DNS files in /etc/resolver/ pointing at
+# MagicDNS (100.100.100.100, fd7a:115c:a1e0::53). Those then black-hole, and every
+# cold AAAA lookup eats a 2-5s timeout — ping by IP still works, but pages that pull
+# dozens of domains never finish loading. Restart the daemon and clear the cache.
+alias fix-tailscale-dns='sudo launchctl kickstart -k system/com.tailscale.tailscaled && sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder'
 
 # After a brew upgrade/install, resync the tailscaled system daemon if it drifted.
 # See ~/.local/bin/tailscaled-resync for the why.
