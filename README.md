@@ -59,7 +59,9 @@ Anything under `.chezmoiscripts/` runs during `chezmoi apply` but is never insta
 
 - `~/.zshrc.local` is sourced last, if present.
 - `~/.gitconfig.local` is included, if present.
-- Machine identity (the git email) is prompted once by chezmoi on first apply.
+- Nothing is prompted on first apply: values that are personal but harmless to publish stay literal in the files.
+
+What gets pulled out of a tracked file, and the only two reasons it happens: publishing the value would harm me (employer vocabulary, hostnames, absolute home paths, other people's addresses), or it genuinely differs between my own machines. "A forker would want a different value" is not one of the reasons — read the file, copy the line, change it.
 
 Private and work-specific config lives in those files, outside this repo.
 

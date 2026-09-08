@@ -1,6 +1,6 @@
 [user]
   name = Gerard Rovira
-  email = {{ .email }}
+  email = gerard.rovira.sanchez@gmail.com
 [alias]
   tree = log --oneline --graph --color --all --decorate
   sbranch = for-each-ref --count=10 --sort=-committerdate refs/heads/ --format='%(refname:short)'

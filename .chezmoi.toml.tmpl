@@ -1,9 +1,4 @@
-{{- $email := promptStringOnce . "email" "Git email for this machine" -}}
-
 sourceDir = "{{ .chezmoi.homeDir }}/Code/dotfiles"
-
-[data]
-    email = {{ $email | quote }}
 
 [git]
     autoCommit = false

@@ -39,5 +39,6 @@ description = "Cloud drive mount paths that reveal account names"
 regex = '''(?i)CloudStorage/|GoogleDrive-|Dropbox/'''
 
 [allowlist]
-description = "The config itself has to name the vocabulary it bans"
+description = "The config names the vocabulary it bans; the owner's own address is already public in every commit he has authored, so it is not what this rule is for — colleagues' addresses and employer domains are"
 paths = ['''\.gitleaks\.toml$''']
+regexes = ['''gerard\.rovira\.sanchez@gmail\.com''']
