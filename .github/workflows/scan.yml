@@ -49,29 +49,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: install shellcheck and zsh
-        # Both are usually preinstalled on the runner. Do not blindly
-        # `apt-get update && apt-get install`: the runner image ships a Google
-        # Chrome apt source that intermittently serves a Packages.gz whose hash
-        # does not match its own index, and apt then exits 100 — failing this
-        # job for a reason that has nothing to do with this repo. shellcheck is
-        # fetched as a static binary; apt is touched only if zsh is genuinely
-        # missing, and only after dropping the offending source.
+        # shellcheck already ships with the runner image (0.9.0); in practice
+        # only zsh is installed here. Two deliberate details:
+        #   * Third-party sources are dropped first. The image ships a Google
+        #     Chrome apt repo whose CDN intermittently serves a Packages.gz
+        #     that does not match its own Release index, and `apt-get update`
+        #     then exits 100 — failing this job for a reason unrelated to this
+        #     repo. It clears on Google's side within hours, but it recurs.
+        #   * A partial update is tolerated. apt says it itself: "Some index
+        #     files failed to download. They have been ignored, or old ones
+        #     used instead." The Ubuntu indexes — the only ones these packages
+        #     come from — fetch normally, so a non-zero update is not fatal
+        #     here. The install below is what actually gates the step.
         run: |
           set -eu
-          if ! command -v shellcheck >/dev/null 2>&1; then
-            curl -fsSL "https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.linux.x86_64.tar.xz" \
-              | sudo tar -xJ --strip-components=1 -C /usr/local/bin shellcheck-v0.11.0/shellcheck
-          fi
-          if ! command -v zsh >/dev/null 2>&1; then
-            # Drop third-party sources, then tolerate a partial update. The
-            # Chrome repo's bad index is the only one that fails, and apt says
-            # so itself: "Some index files failed to download. They have been
-            # ignored, or old ones used instead." The Ubuntu indexes — the only
-            # ones zsh needs — fetch fine, so a non-zero update is not fatal.
-            sudo rm -f /etc/apt/sources.list.d/*google* /etc/apt/sources.list.d/*chrome* || true
-            sudo apt-get update -qq || true
-            sudo apt-get install -y zsh
-          fi
+          sudo rm -f /etc/apt/sources.list.d/*google* /etc/apt/sources.list.d/*chrome* || true
+          sudo apt-get update -qq || true
+          sudo apt-get install -y shellcheck zsh
           shellcheck --version | sed -n 2p
           zsh --version
       - name: lint every shell file, discovered by shebang
