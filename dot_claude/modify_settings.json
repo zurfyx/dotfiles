@@ -1,0 +1,43 @@
+{{- /* chezmoi:modify-template */ -}}
+{{- /*
+Claude Code owns ~/.claude/settings.json: it rewrites the file when you change
+something in /config, and installers add hooks and plugins to it. Tracking it as
+an ordinary file would mean chezmoi and the app fighting over who owns the whole
+thing, and every apply deleting whatever the app had added since. A modify_
+script is chezmoi's documented exception to managing whole files — the current
+contents arrive on stdin, and only what this template sets is changed. Hooks,
+enabledPlugins and extraKnownMarketplaces are deliberately absent below, so they
+pass through untouched and never reach this repository.
+
+A key earns a line here by being a preference worth carrying to a new machine
+*and* differing from the stock behaviour. That rules out anything left at its
+default, and anything true of one machine only.
+
+Empty stdin means the file does not exist yet, which is the new-machine case:
+the dict starts empty and the same lines below write it from nothing.
+*/ -}}
+{{- $s := dict -}}
+{{- if .chezmoi.stdin }}{{ $s = fromJson .chezmoi.stdin }}{{ end -}}
+
+{{- /* Transcripts are deleted after 30 days by default, and the sweep now takes
+       tasks/, shell-snapshots/ and backups/ with them. A year of history costs
+       disk and nothing else. */ -}}
+{{- $s = setValueAtPath "cleanupPeriodDays" 365.0 $s -}}
+
+{{- /* No Co-Authored-By trailer, no attribution line in pull requests, no
+       claude.ai link in the commit. Commits are authored by me alone. */ -}}
+{{- $s = setValueAtPath "attribution" (dict "commit" "" "pr" "" "sessionUrl" false) $s -}}
+
+{{- /* The status line this repository ships. refreshInterval keeps its
+       countdowns moving while the session is idle; see the script's header. */ -}}
+{{- $s = setValueAtPath "statusLine" (dict "type" "command" "command" "~/.claude/statusline.sh" "refreshInterval" 60.0) $s -}}
+
+{{- $s = setValueAtPath "skipDangerousModePermissionPrompt" true $s -}}
+{{- $s = setValueAtPath "effortLevel" "high" $s -}}
+{{- $s = setValueAtPath "tui" "default" $s -}}
+
+{{- /* Set as a path rather than replacing the whole env object, so a machine
+       that has other variables in there keeps them. Updates come from the
+       package manager, so the built-in updater only fights it. */ -}}
+{{- $s = setValueAtPath "env.DISABLE_AUTOUPDATER" "1" $s -}}
+{{ $s | toPrettyJson }}
