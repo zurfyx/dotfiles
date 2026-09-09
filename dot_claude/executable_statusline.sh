@@ -342,11 +342,17 @@ QUOTA="$(quota_seg "$FIVE" "$FIVE_AT" 5h)$(quota_seg "$WEEK" "$WEEK_AT" 7d)"
 # to show, so the flame gives way to a bare snowflake: the next turn will pay
 # full price for the prefix, which is worth seeing at a glance. A provider that
 # never caches at all shows neither glyph rather than a permanent snowflake.
+#
+# Both states render at the same weight, uncolored. One segment changing state
+# should not also change how loud it is: the glyph already says which state it
+# is in, and dimming the cold one would make the swap read as two changes
+# instead of one. A dim outline glyph is also the first thing to disappear on a
+# low-contrast theme, which is the wrong thing to hide.
 CACHE=""
 if [ -n "$CACHE_EXP" ]; then
   CACHE=" ${I_FIRE}$(fmt_left $((CACHE_EXP - NOW)))"
 elif [ -n "$CACHE_SEEN" ]; then
-  CACHE=" ${DIM}${I_COLD}${R}"
+  CACHE=" ${I_COLD}"
 fi
 
 # Groups run left to right by increasing time horizon: the working tree right
