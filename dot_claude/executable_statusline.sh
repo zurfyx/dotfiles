@@ -77,7 +77,7 @@ FIELDS=$(echo "$input" | TZ=UTC jq -r '
   # Warm only. Gate on caching_observed too, else a provider that never caches
   # looks permanently cold. Compare with == true: jq // treats false as absent.
   , ( if (.prompt_cache.caching_observed == true and .prompt_cache.warm == true)
-        then (.prompt_cache.expires_at // "") else "" end )
+        then (.prompt_cache.expires_at | ep) else "" end )
   ] | map(tostring) | join("\u001f")')
 
 IFS=$'\037' read -r MODEL DIR_PATH PCT COST_RAW DURATION_MS \
