@@ -5,6 +5,9 @@
 #
 #   [Opus 5] myrepo |  main +412/-88 | ████████░░ 78% 󰈸47m | $12.40 18m3s | 41% 2h 63% 4d
 #
+# The 󰈸 is the prompt cache: time left before the cached prefix goes cold. Once
+# it has, the flame becomes a bare 󰜗.
+#
 # Install
 #   1. Save as ~/.claude/statusline.sh, then `chmod +x ~/.claude/statusline.sh`
 #   2. Add to ~/.claude/settings.json:
@@ -78,10 +81,13 @@ FIELDS=$(echo "$input" | TZ=UTC jq -r '
   # looks permanently cold. Compare with == true: jq // treats false as absent.
   , ( if (.prompt_cache.caching_observed == true and .prompt_cache.warm == true)
         then (.prompt_cache.expires_at | ep) else "" end )
+  # Has this session ever cached? Distinguishes "cooled down" — which earns the
+  # cold glyph — from "provider never caches", where the segment stays absent.
+  , (if (.prompt_cache.caching_observed == true) then 1 else "" end)
   ] | map(tostring) | join("\u001f")')
 
 IFS=$'\037' read -r MODEL DIR_PATH PCT COST_RAW DURATION_MS \
-  FIVE FIVE_AT WEEK WEEK_AT CACHE_EXP <<< "$FIELDS"
+  FIVE FIVE_AT WEEK WEEK_AT CACHE_EXP CACHE_SEEN <<< "$FIELDS"
 
 # Defaults for the malformed-payload case: each of these feeds arithmetic or a
 # numeric test below, where an empty string is a hard error rather than a zero.
@@ -107,16 +113,17 @@ NOW=$(date +%s)
 DIM='\033[2m'; R='\033[0m'; YEL='\033[33m'
 RED='\033[31m'; GOLD='\033[33m'; GRN='\033[32m'
 
-# Glyphs.  is nf-dev-git-branch and 󰈸 is nf-md-fire, both nerd-font private-use
-# codepoints. They are deliberately not 🔥/⚡ or similar: emoji are painted in
-# the terminal's own color and ignore the dim attribute, whereas private-use
-# glyphs are plain outlines that take the color they are given. The bar blocks
-# are ordinary Unicode and widely available, but they travel with the same
-# switch so one setting covers every non-ASCII character in the output.
+# Glyphs.  is nf-dev-git-branch, 󰈸 is nf-md-fire and 󰜗 is nf-md-snowflake, all
+# nerd-font private-use codepoints. They are deliberately not 🔥/❄️ or similar:
+# emoji are painted in the terminal's own color and ignore the dim attribute,
+# whereas private-use glyphs are plain outlines that take the color they are
+# given. The bar blocks are ordinary Unicode and widely available, but they
+# travel with the same switch so one setting covers every non-ASCII character
+# in the output.
 if [ "$STATUSLINE_ICONS" = ascii ]; then
-  I_VCS="@"; I_FIRE="~"; B_FULL="#"; B_EMPTY="-"; B_OPEN="["; B_CLOSE="]"
+  I_VCS="@"; I_FIRE="~"; I_COLD="*"; B_FULL="#"; B_EMPTY="-"; B_OPEN="["; B_CLOSE="]"
 else
-  I_VCS=""; I_FIRE="󰈸"; B_FULL="█"; B_EMPTY="░"; B_OPEN=""; B_CLOSE=""
+  I_VCS=""; I_FIRE="󰈸"; I_COLD="󰜗"; B_FULL="█"; B_EMPTY="░"; B_OPEN=""; B_CLOSE=""
 fi
 
 # macOS ships no timeout(1), and no gtimeout unless coreutils is installed. That
@@ -321,10 +328,16 @@ QUOTA="$(quota_seg "$FIVE" "$FIVE_AT" 5h)$(quota_seg "$WEEK" "$WEEK_AT" 7d)"
 # Prompt cache: time left before the cached prefix goes cold. Rides in the
 # context group — how full this conversation is, and how long it stays cached,
 # are the same subject, and the flame keeps the two numbers apart without a
-# separator between them. A cold cache has no countdown to show, so it
-# disappears rather than reporting its own absence.
+# separator between them. Once the window has lapsed there is no countdown left
+# to show, so the flame gives way to a bare snowflake: the next turn will pay
+# full price for the prefix, which is worth seeing at a glance. A provider that
+# never caches at all shows neither glyph rather than a permanent snowflake.
 CACHE=""
-[ -n "$CACHE_EXP" ] && CACHE=" ${I_FIRE}$(fmt_left $((CACHE_EXP - NOW)))"
+if [ -n "$CACHE_EXP" ]; then
+  CACHE=" ${I_FIRE}$(fmt_left $((CACHE_EXP - NOW)))"
+elif [ -n "$CACHE_SEEN" ]; then
+  CACHE=" ${DIM}${I_COLD}${R}"
+fi
 
 # Groups run left to right by increasing time horizon: the working tree right
 # now, then this conversation (how full, how long cached), then this session's
