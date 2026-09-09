@@ -1,0 +1,19 @@
+{
+  "$schema" : "https://raw.githubusercontent.com/manaflow-ai/cmux/main/web/data/cmux.schema.json",
+  "app" : {
+    "hideTabCloseButton" : true,
+    "minimalMode" : true,
+    "newWorkspacePlacement" : "top"
+  },
+  "customSidebars" : {
+    "renderer" : "inProcess"
+  },
+  "notifications" : {
+    "paneFlash" : false,
+    "unreadPaneRing" : false
+  },
+  "schemaVersion" : 1,
+  "sidebar" : {
+    "hideAllDetails" : true
+  }
+}

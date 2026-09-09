@@ -43,6 +43,7 @@ The source lives at `~/Code/dotfiles` (set via `sourceDir` in the config templat
 | [`dot_gitconfig.tmpl`](dot_gitconfig.tmpl) | `~/.gitconfig` | Git config; email filled in from chezmoi data |
 | [`dot_tmux.conf`](dot_tmux.conf) | `~/.tmux.conf` | tmux config and status-bar wiring |
 | [`dot_local/bin/`](dot_local/bin) | `~/.local/bin/` | Standalone scripts (the table above) |
+| [`dot_config/cmux/cmux.json`](dot_config/cmux/cmux.json) | `~/.config/cmux/cmux.json` | cmux terminal UI preferences |
 | [`Library/Application Support/com.mitchellh.ghostty/config`](Library/Application%20Support/com.mitchellh.ghostty/config) | same path under `~` | Ghostty terminal config |
 | [`Library/Application Support/Code/User/`](Library/Application%20Support/Code/User) | same path under `~` | VS Code settings and keybindings |
 | [`dot_claude/executable_statusline.sh`](dot_claude/executable_statusline.sh) | `~/.claude/statusline.sh` | Claude Code statusline |
