@@ -12,6 +12,14 @@ on:
 jobs:
   gitleaks:
     runs-on: ubuntu-latest
+    # On pull_request the action takes its ScanPullRequest path, which calls the
+    # GitHub API to list the PR's commits and post a summary comment. The default
+    # GITHUB_TOKEN is read-only, so without these it dies with "Resource not
+    # accessible by integration" on every PR — while passing on push, which never
+    # takes that path.
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
