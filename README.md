@@ -15,6 +15,7 @@ macOS dotfiles for two Macs, managed with chezmoi. The parts worth stealing: a t
 | Sensitive commands end up in shell history | `incognito()` in [`dot_zshrc`](dot_zshrc) | Drops into a shell that writes no history, marked in the prompt |
 | `$?` only reports the last stage of a pipeline | the pipestatus prompt in [`dot_zshrc`](dot_zshrc) | Prompt prints every stage's exit code, failures in color |
 | Claude Code's default statusline says nothing about context or quota | [`dot_claude/executable_statusline.sh`](dot_claude/executable_statusline.sh) | Statusline with context-window and quota bars |
+| Claude Code owns `~/.claude/settings.json` — it rewrites the file, installers add hooks to it, and it holds per-machine paths that cannot be published | [`dot_claude/modify_settings.json`](dot_claude/modify_settings.json) | Sets only the preferences worth carrying to a new machine, and leaves the rest of the file alone |
 
 ## Install
 
@@ -47,22 +48,24 @@ The source lives at `~/Code/dotfiles` (set via `sourceDir` in the config templat
 | [`Library/Application Support/com.mitchellh.ghostty/config`](Library/Application%20Support/com.mitchellh.ghostty/config) | same path under `~` | Ghostty terminal config |
 | [`Library/Application Support/Code/User/`](Library/Application%20Support/Code/User) | same path under `~` | VS Code settings and keybindings |
 | [`dot_claude/executable_statusline.sh`](dot_claude/executable_statusline.sh) | `~/.claude/statusline.sh` | Claude Code statusline |
+| [`dot_claude/modify_settings.json`](dot_claude/modify_settings.json) | part of `~/.claude/settings.json` | Claude Code preferences, merged into whatever is already there |
 | [`.chezmoiscripts/`](.chezmoiscripts) | not installed | Setup scripts run by `chezmoi apply` |
 | [`.chezmoi.toml.tmpl`](.chezmoi.toml.tmpl) | `~/.config/chezmoi/chezmoi.toml` | Prompts for machine identity on first init |
 
 How chezmoi filenames map: `dot_` becomes a leading `.` on install,
-`executable_` becomes `chmod +x`, and a `.tmpl` suffix marks a Go template
+`executable_` becomes `chmod +x`, `modify_` marks a script that edits the
+existing file rather than replacing it, and a `.tmpl` suffix marks a Go template
 rendered with local data. `run_once_` scripts run a single time ever;
 `run_onchange_` scripts run whenever their content changes.
 Anything under `.chezmoiscripts/` runs during `chezmoi apply` but is never installed to `$HOME`.
 
 ## What's parameterized and why
 
-Almost nothing. `chezmoi init` asks no questions, and the only template in the repo is `.chezmoi.toml.tmpl`, which just points chezmoi at this directory. Names, aliases, paths, font sizes, my email — all literal values sitting in the files where you can read them.
+Almost nothing. `chezmoi init` asks no questions, and the repo has two templates: `.chezmoi.toml.tmpl`, which just points chezmoi at this directory, and `dot_claude/modify_settings.json`, which sets a handful of keys in a file the application itself owns. Names, aliases, paths, font sizes, my email — all literal values sitting in the files where you can read them.
 
 A value leaves a tracked file for exactly two reasons:
 
-1. **Publishing it would cause harm.** Employer tool names, hostnames, other people's email addresses, absolute home paths, anything secret. Those live in `~/.zshrc.local` and `~/.gitconfig.local`, outside this repo, and `.gitleaks.toml` enforces their absence.
+1. **Publishing it would cause harm.** Employer tool names, hostnames, other people's email addresses, absolute home paths, anything secret. Those live in `~/.zshrc.local` and `~/.gitconfig.local`, outside this repo, and `.gitleaks.toml` enforces their absence. `~/.claude/settings.json` is a third case: the file cannot move, so the repo reaches in and sets only the keys that are safe to publish, and the employer-specific hooks and plugins beside them are never read or written.
 2. **It genuinely differs between my own machines.** That is what chezmoi templates are for. Nothing needs one today.
 
 "Someone forking this would want a different value" is deliberately not on the list. This is my config, published so it can be read and borrowed from, not a framework to be configured. Every variable added for a hypothetical stranger puts one more layer between a reader and the line they came for. Copy the file, change the name, move on.
