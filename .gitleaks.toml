@@ -5,28 +5,33 @@
 
 title = "dotfiles"
 
+# NOTE: every group below is non-capturing (?:...). gitleaks reports the first
+# capture group as the "secret", and the allowlist matches against that secret —
+# a capturing group would make the secret the bare alternative (e.g. "gmail"),
+# which no sensible allowlist entry can match.
+
 [extend]
 useDefault = true
 
 [[rules]]
 id = "employer-vocabulary"
 description = "Internal tool and domain names that identify an employer"
-regex = '''(?i)\b(fbsource|agentbox|quicklog|devvm|devserver|sandcastle|phabricator|fburl|meta\.com|facebook\.com|fb\.com)\b'''
+regex = '''(?i)\b(?:fbsource|agentbox|quicklog|devvm|devserver|sandcastle|phabricator|fburl|meta\.com|facebook\.com|fb\.com)\b'''
 
 [[rules]]
 id = "tailnet-or-internal-host"
 description = "Tailscale tailnet hostnames and internal-network host suffixes"
-regex = '''(?i)\b[a-z0-9-]+\.(ts\.net|internal|corp|lan)\b'''
+regex = '''(?i)\b[a-z0-9-]+\.(?:ts\.net|internal|corp|lan)\b'''
 
 [[rules]]
 id = "private-ip"
 description = "RFC1918 and CGNAT (100.64/10) IP addresses"
-regex = '''\b(10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d{1,3}\.\d{1,3})\b'''
+regex = '''\b(?:10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|100\.(?:6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d{1,3}\.\d{1,3})\b'''
 
 [[rules]]
 id = "personal-email"
 description = "Personal or employer email addresses"
-regex = '''[A-Za-z0-9._%+-]+@(gmail|meta|facebook|outlook|icloud)\.com'''
+regex = '''[A-Za-z0-9._%+-]+@(?:gmail|meta|facebook|outlook|icloud)\.com'''
 
 [[rules]]
 id = "absolute-home-path"
