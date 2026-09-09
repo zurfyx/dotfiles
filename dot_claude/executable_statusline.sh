@@ -11,7 +11,17 @@
 # Install
 #   1. Save as ~/.claude/statusline.sh, then `chmod +x ~/.claude/statusline.sh`
 #   2. Add to ~/.claude/settings.json:
-#        "statusLine": { "type": "command", "command": "~/.claude/statusline.sh" }
+#        "statusLine": { "type": "command", "command": "~/.claude/statusline.sh"
+#                      , "refreshInterval": 60 }
+#
+# refreshInterval is worth setting for this particular status line. Renders are
+# otherwise event-driven — a new assistant message, a mode change, the end of a
+# /compact — so nothing redraws while the session sits idle, and every countdown
+# here (cache, quota windows, elapsed) freezes at whatever it last said. A
+# 60-second timer thaws them without being wasteful: no field is finer-grained
+# than a minute, so a faster tick would redraw an identical string. One render
+# costs ~70ms with the repository cache warm, and the expensive part already
+# runs detached behind that cache.
 #
 # Requires jq. Works in a git, Sapling (sl), or Mercurial (hg) checkout —
 # whichever the directory turns out to be — and simply omits the repository
