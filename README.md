@@ -40,7 +40,7 @@ The source lives at `~/Code/dotfiles` (set via `sourceDir` in the config templat
 |---|---|---|
 | [`dot_zshrc`](dot_zshrc) | `~/.zshrc` | Interactive shell: prompt (pipestatus), aliases, `incognito()` |
 | [`dot_zprofile`](dot_zprofile) | `~/.zprofile` | Login shell: PATH and environment |
-| [`dot_gitconfig.tmpl`](dot_gitconfig.tmpl) | `~/.gitconfig` | Git config; email filled in from chezmoi data |
+| [`dot_gitconfig`](dot_gitconfig) | `~/.gitconfig` | Git config: aliases, and an include of `~/.gitconfig.local` |
 | [`dot_tmux.conf`](dot_tmux.conf) | `~/.tmux.conf` | tmux config and status-bar wiring |
 | [`dot_local/bin/`](dot_local/bin) | `~/.local/bin/` | Standalone scripts (the table above) |
 | [`dot_config/cmux/cmux.json`](dot_config/cmux/cmux.json) | `~/.config/cmux/cmux.json` | cmux terminal UI preferences |

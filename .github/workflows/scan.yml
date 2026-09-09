@@ -42,16 +42,63 @@ jobs:
       - uses: actions/checkout@v4
       - name: install shellcheck and zsh
         run: sudo apt-get update && sudo apt-get install -y shellcheck zsh
-      - name: shellcheck the bash scripts
+      - name: lint every shell file, discovered by shebang
         run: |
-          shellcheck .githooks/pre-commit
-          for f in .chezmoiscripts/*.sh dot_local/bin/executable_tailscaled-resync; do
-            [ -e "$f" ] || continue
-            shellcheck "$f"
-          done
-      - name: zsh syntax check
+          set -euo pipefail
+          # Discovery, not a hardcoded list: a list drifts the moment a script
+          # is added. Shebang is the key, not the executable bit — chezmoi takes
+          # the mode from the filename prefix, so modes here are unreliable.
+          sh_files=(); zsh_files=(dot_zshrc dot_zprofile)
+          while IFS= read -r -d '' f; do
+            case "$f" in *.tmpl) continue ;; esac   # Go templates are not shell
+            read -r first < "$f" || continue
+            case "$first" in
+              '#!'*zsh)          zsh_files+=("$f") ;;
+              '#!'*bash|'#!'*sh) sh_files+=("$f") ;;
+            esac
+          done < <(git ls-files -z)
+          printf 'shellcheck: %s\n' "${sh_files[@]}"
+          printf 'zsh -n:     %s\n' "${zsh_files[@]}"
+          shellcheck "${sh_files[@]}"          # no -s: the shebang picks sh vs bash
+          for f in "${zsh_files[@]}"; do zsh -n "$f"; done
+
+  chezmoi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: install chezmoi
+        run: sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$RUNNER_TEMP/bin"
+      - name: source state renders and applies to an empty home
+        # --dry-run renders every template (including .chezmoiscripts/*.tmpl, which
+        # is what couples the Brewfile to `include "Brewfile" | sha256sum`) without
+        # executing any script. Do NOT add --exclude=scripts: it skips rendering
+        # them entirely, which is exactly the failure this step exists to catch.
         run: |
-          for f in dot_zshrc dot_zprofile dot_local/bin/executable_clauded; do
-            [ -e "$f" ] || continue
-            zsh -n "$f"
-          done
+          mkdir -p "$RUNNER_TEMP/home" "$RUNNER_TEMP/cfghome"
+          HOME="$RUNNER_TEMP/cfghome" "$RUNNER_TEMP/bin/chezmoi" apply --dry-run \
+            --source "$PWD" --destination "$RUNNER_TEMP/home" --no-tty
+      - name: config template renders to valid TOML
+        # .chezmoi.toml.tmpl is only read at init time; `apply` exits 0 even when
+        # it renders to invalid TOML.
+        run: |
+          mkdir -p "$RUNNER_TEMP/inithome"
+          HOME="$RUNNER_TEMP/inithome" "$RUNNER_TEMP/bin/chezmoi" \
+            init --dry-run --source "$PWD" --no-tty
+
+  readme-links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: README links resolve to real paths
+        run: |
+          bad=0
+          while read -r link; do
+            case "$link" in http://*|https://*|mailto:*|'#'*) continue ;; esac
+            path="${link%%#*}"; path="${path//%20/ }"
+            [ -z "$path" ] && continue
+            if [ ! -e "$path" ]; then
+              echo "README.md: link target does not exist: $link"
+              bad=1
+            fi
+          done < <(grep -oE ']\([^)]+\)' README.md | sed 's/^](//; s/)$//')
+          exit $bad
