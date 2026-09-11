@@ -1,0 +1,9 @@
+{{- /* chezmoi:modify-template */ -}}
+{{- /* Codex owns this file, so preserve every setting except the shared model preference. */ -}}
+{{- $config := .chezmoi.stdin -}}
+{{- if regexMatch `(?m)^model\s*=` $config -}}
+{{ regexReplaceAll `(?m)^model\s*=.*$` $config `model = "gpt-5.6-sol[1m]"` }}
+{{- else -}}
+model = "gpt-5.6-sol[1m]"
+{{ $config }}
+{{- end -}}

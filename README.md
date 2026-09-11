@@ -49,23 +49,24 @@ The source lives at `~/Code/dotfiles` (set via `sourceDir` in the config templat
 | [`Library/Application Support/Code/User/`](Library/Application%20Support/Code/User) | same path under `~` | VS Code settings and keybindings |
 | [`dot_claude/executable_statusline.sh`](dot_claude/executable_statusline.sh) | `~/.claude/statusline.sh` | Claude Code statusline |
 | [`dot_claude/modify_settings.json`](dot_claude/modify_settings.json) | part of `~/.claude/settings.json` | Claude Code preferences, merged into whatever is already there |
+| [`private_dot_codex/modify_private_config.toml`](private_dot_codex/modify_private_config.toml) | part of `~/.codex/config.toml` | Codex model preference, merged into the app-owned config |
 | [`.chezmoiscripts/`](.chezmoiscripts) | not installed | Setup scripts run by `chezmoi apply` |
 | [`.chezmoi.toml.tmpl`](.chezmoi.toml.tmpl) | `~/.config/chezmoi/chezmoi.toml` | Prompts for machine identity on first init |
 
 How chezmoi filenames map: `dot_` becomes a leading `.` on install,
-`executable_` becomes `chmod +x`, `modify_` marks a script that edits the
-existing file rather than replacing it, and a `.tmpl` suffix marks a Go template
-rendered with local data. `run_once_` scripts run a single time ever;
+`private_` restricts access to the owner, `executable_` becomes `chmod +x`,
+`modify_` marks a script that edits the existing file rather than replacing it,
+and a `.tmpl` suffix marks a Go template rendered with local data. `run_once_` scripts run a single time ever;
 `run_onchange_` scripts run whenever their content changes.
 Anything under `.chezmoiscripts/` runs during `chezmoi apply` but is never installed to `$HOME`.
 
 ## What's parameterized and why
 
-Almost nothing. `chezmoi init` asks no questions, and the repo has two templates: `.chezmoi.toml.tmpl`, which just points chezmoi at this directory, and `dot_claude/modify_settings.json`, which sets a handful of keys in a file the application itself owns. Names, aliases, paths, font sizes, my email — all literal values sitting in the files where you can read them.
+Almost nothing. `chezmoi init` asks no questions, and the repo has three templates: `.chezmoi.toml.tmpl`, which just points chezmoi at this directory; `dot_claude/modify_settings.json`, which sets a handful of keys in a file the application itself owns; and `private_dot_codex/modify_private_config.toml`, which does the same for the Codex model preference. Names, aliases, paths, font sizes, my email — all literal values sitting in the files where you can read them.
 
 A value leaves a tracked file for exactly two reasons:
 
-1. **Publishing it would cause harm.** Employer tool names, hostnames, other people's email addresses, absolute home paths, anything secret. Those live in `~/.zshrc.local` and `~/.gitconfig.local`, outside this repo, and `.gitleaks.toml` enforces their absence. `~/.claude/settings.json` is a third case: the file cannot move, so the repo reaches in and sets only the keys that are safe to publish, and the employer-specific hooks and plugins beside them are never read or written.
+1. **Publishing it would cause harm.** Employer tool names, hostnames, other people's email addresses, absolute home paths, anything secret. Those live in `~/.zshrc.local` and `~/.gitconfig.local`, outside this repo, and `.gitleaks.toml` enforces their absence. `~/.claude/settings.json` and `~/.codex/config.toml` are the app-owned cases: the files cannot move, so the repo reaches in and sets only the keys that are safe to publish, while everything beside them is never read or written.
 2. **It genuinely differs between my own machines.** That is what chezmoi templates are for. Nothing needs one today.
 
 "Someone forking this would want a different value" is deliberately not on the list. This is my config, published so it can be read and borrowed from, not a framework to be configured. Every variable added for a hypothetical stranger puts one more layer between a reader and the line they came for. Copy the file, change the name, move on.
