@@ -16,6 +16,7 @@ macOS dotfiles for two Macs, managed with chezmoi. The parts worth stealing: a t
 | `$?` only reports the last stage of a pipeline | the pipestatus prompt in [`dot_zshrc`](dot_zshrc) | Prompt prints every stage's exit code, failures in color |
 | Claude Code's default statusline says nothing about context or quota | [`dot_claude/executable_statusline.sh`](dot_claude/executable_statusline.sh) | Statusline with context-window and quota bars |
 | Claude Code owns `~/.claude/settings.json` — it rewrites the file, installers add hooks to it, and it holds per-machine paths that cannot be published | [`dot_claude/modify_settings.json`](dot_claude/modify_settings.json) | Sets only the preferences worth carrying to a new machine, and leaves the rest of the file alone |
+| "Review this carefully" gets a coding agent to spawn three subagents, read the summaries, and declare victory | [`private_dot_codex/skills/exact_ultracode`](private_dot_codex/skills/exact_ultracode) | A Codex skill that forces a real fleet: named roster, waves sized to the runtime, fresh-context skeptics that try to refute every finding and every load-bearing claim, results in files, and a report that shows planned versus actual agents |
 
 ## Install
 
@@ -50,15 +51,18 @@ The source lives at `~/Code/dotfiles` (set via `sourceDir` in the config templat
 | [`dot_claude/executable_statusline.sh`](dot_claude/executable_statusline.sh) | `~/.claude/statusline.sh` | Claude Code statusline |
 | [`dot_claude/modify_settings.json`](dot_claude/modify_settings.json) | part of `~/.claude/settings.json` | Claude Code preferences, merged into whatever is already there |
 | [`private_dot_codex/modify_private_config.toml`](private_dot_codex/modify_private_config.toml) | part of `~/.codex/config.toml` | Codex model preference, merged into the app-owned config |
+| [`private_dot_codex/skills/exact_ultracode/`](private_dot_codex/skills/exact_ultracode) | `~/.codex/skills/ultracode/` | The ultracode agent skill for Codex; `exact_` so a file removed here is removed there too |
 | [`.chezmoiscripts/`](.chezmoiscripts) | not installed | Setup scripts run by `chezmoi apply` |
 | [`.chezmoi.toml.tmpl`](.chezmoi.toml.tmpl) | `~/.config/chezmoi/chezmoi.toml` | Prompts for machine identity on first init |
 
 How chezmoi filenames map: `dot_` becomes a leading `.` on install,
 `private_` restricts access to the owner, `executable_` becomes `chmod +x`,
 `modify_` marks a script that edits the existing file rather than replacing it,
+`exact_` on a directory removes anything in the installed directory that has no counterpart here,
 and a `.tmpl` suffix marks a Go template rendered with local data. `run_once_` scripts run a single time ever;
 `run_onchange_` scripts run whenever their content changes.
 Anything under `.chezmoiscripts/` runs during `chezmoi apply` but is never installed to `$HOME`.
+`symlink_` files hold a link target rather than content.
 
 ## What's parameterized and why
 

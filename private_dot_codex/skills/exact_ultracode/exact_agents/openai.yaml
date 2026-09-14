@@ -1,0 +1,7 @@
+interface:
+  display_name: "Ultracode"
+  short_description: "Research, adversarial validation, rigorous delivery"
+  default_prompt: "Use $ultracode to research, adversarially validate, and complete this task end to end."
+
+policy:
+  allow_implicit_invocation: false
