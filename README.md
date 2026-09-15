@@ -16,7 +16,7 @@ macOS dotfiles for two Macs, managed with chezmoi. The parts worth stealing: a t
 | `$?` only reports the last stage of a pipeline | the pipestatus prompt in [`dot_zshrc`](dot_zshrc) | Prompt prints every stage's exit code, failures in color |
 | Claude Code's default statusline says nothing about context or quota | [`dot_claude/executable_statusline.sh`](dot_claude/executable_statusline.sh) | Statusline with context-window and quota bars |
 | Claude Code owns `~/.claude/settings.json` — it rewrites the file, installers add hooks to it, and it holds per-machine paths that cannot be published | [`dot_claude/modify_settings.json`](dot_claude/modify_settings.json) | Sets only the preferences worth carrying to a new machine, and leaves the rest of the file alone |
-| "Review this carefully" gets a coding agent to spawn three subagents, read the summaries, and declare victory | [`private_dot_codex/skills/exact_ultracode`](private_dot_codex/skills/exact_ultracode) | A Codex skill that forces a real fleet: named roster, waves sized to the runtime, fresh-context skeptics that try to refute every finding and every load-bearing claim, results in files, and a report that shows planned versus actual agents |
+| "Review this carefully" gets a coding agent to spawn three subagents, read the summaries, and declare victory | [`private_dot_codex/skills/exact_ultracode`](private_dot_codex/skills/exact_ultracode) | A Codex skill that forces a real fleet inside a budget: build mode (research, one-page brief, implementation by file ownership, verification, review) and audit mode (research, validation, fresh-context skeptics, gap round), with a binding roster, results in files, and a report that shows planned versus actual agents and wall-clock |
 
 ## Install
 
@@ -50,7 +50,7 @@ The source lives at `~/Code/dotfiles` (set via `sourceDir` in the config templat
 | [`Library/Application Support/Code/User/`](Library/Application%20Support/Code/User) | same path under `~` | VS Code settings and keybindings |
 | [`dot_claude/executable_statusline.sh`](dot_claude/executable_statusline.sh) | `~/.claude/statusline.sh` | Claude Code statusline |
 | [`dot_claude/modify_settings.json`](dot_claude/modify_settings.json) | part of `~/.claude/settings.json` | Claude Code preferences, merged into whatever is already there |
-| [`private_dot_codex/modify_private_config.toml`](private_dot_codex/modify_private_config.toml) | part of `~/.codex/config.toml` | Codex model preference, merged into the app-owned config |
+| [`private_dot_codex/modify_private_config.toml`](private_dot_codex/modify_private_config.toml) | part of `~/.codex/config.toml` | Codex model preference and subagent concurrency, merged into the app-owned config |
 | [`private_dot_codex/skills/exact_ultracode/`](private_dot_codex/skills/exact_ultracode) | `~/.codex/skills/ultracode/` | The ultracode agent skill for Codex; `exact_` so a file removed here is removed there too |
 | [`.chezmoiscripts/`](.chezmoiscripts) | not installed | Setup scripts run by `chezmoi apply` |
 | [`.chezmoi.toml.tmpl`](.chezmoi.toml.tmpl) | `~/.config/chezmoi/chezmoi.toml` | Prompts for machine identity on first init |
@@ -66,7 +66,7 @@ Anything under `.chezmoiscripts/` runs during `chezmoi apply` but is never insta
 
 ## What's parameterized and why
 
-Almost nothing. `chezmoi init` asks no questions, and the repo has three templates: `.chezmoi.toml.tmpl`, which just points chezmoi at this directory; `dot_claude/modify_settings.json`, which sets a handful of keys in a file the application itself owns; and `private_dot_codex/modify_private_config.toml`, which does the same for the Codex model preference. Names, aliases, paths, font sizes, my email — all literal values sitting in the files where you can read them.
+Almost nothing. `chezmoi init` asks no questions, and the repo has three templates: `.chezmoi.toml.tmpl`, which just points chezmoi at this directory; `dot_claude/modify_settings.json`, which sets a handful of keys in a file the application itself owns; and `private_dot_codex/modify_private_config.toml`, which does the same for the Codex model preference and subagent concurrency. Names, aliases, paths, font sizes, my email — all literal values sitting in the files where you can read them.
 
 A value leaves a tracked file for exactly two reasons:
 
