@@ -1,6 +1,15 @@
 {{- /* chezmoi:modify-template */ -}}
-{{- /* Codex owns this file, so preserve every setting except the shared model preference. */ -}}
+{{- /* Codex owns this file, so preserve every setting except the keys managed here: */ -}}
+{{- /*   model                                     shared model preference            */ -}}
+{{- /*   agents.max_concurrent_threads_per_session subagents that may run at once     */ -}}
+{{- /*     (Codex defaults to 3; the ultracode skill runs its fleet in waves of this size) */ -}}
 {{- $config := .chezmoi.stdin -}}
+{{- $config = regexReplaceAll `(?m)^max_concurrent_threads_per_session\s*=.*\n?` $config "" -}}
+{{- if regexMatch `(?m)^\[agents\]\s*$` $config -}}
+{{- $config = regexReplaceAll `(?m)^\[agents\]\s*$` $config "[agents]\nmax_concurrent_threads_per_session = 11" -}}
+{{- else -}}
+{{- $config = printf "%s\n[agents]\nmax_concurrent_threads_per_session = 11\n" (trimSuffix "\n" $config) -}}
+{{- end -}}
 {{- if regexMatch `(?m)^model\s*=` $config -}}
 {{ regexReplaceAll `(?m)^model\s*=.*$` $config `model = "gpt-5.6-sol[1m]"` }}
 {{- else -}}
