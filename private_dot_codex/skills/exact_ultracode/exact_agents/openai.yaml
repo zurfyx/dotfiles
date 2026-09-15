@@ -1,7 +1,7 @@
 interface:
   display_name: "Ultracode"
-  short_description: "Research, adversarial validation, rigorous delivery"
-  default_prompt: "Use $ultracode to research, adversarially validate, and complete this task end to end."
+  short_description: "Fleet-backed research, build, and adversarial validation"
+  default_prompt: "Use $ultracode to research this task with a fleet, then build it or audit it end to end."
 
 policy:
   allow_implicit_invocation: false
