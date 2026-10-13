@@ -70,6 +70,22 @@ jobs:
           shellcheck "${sh_files[@]}"          # no -s: the shebang picks sh vs bash
           for f in "${zsh_files[@]}"; do zsh -n "$f"; done
 
+  statusline-test:
+    # Both platforms, because the script's constraints are the differences
+    # between them: macOS /bin/bash is 3.2, and BSD tail, find, wc and awk are
+    # not GNU's. jq ships on both runner images; the test needs nothing else.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: statusline token totals against synthetic transcripts
+        run: |
+          jq --version && /bin/bash --version | head -1
+          /bin/bash tests/statusline.sh
+
   chezmoi:
     runs-on: ubuntu-latest
     steps:
