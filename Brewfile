@@ -4,5 +4,6 @@ brew "chezmoi"   # manages this repo
 brew "jq"        # statusline
 brew "gitleaks"  # pre-commit secret scanning
 brew "git-lfs"   # gitconfig filter
+brew "gh"        # gitconfig credential helper for github.com
 # tailscale is deliberately absent: installed manually as a system daemon
 # (see bin/tailscaled-resync).
