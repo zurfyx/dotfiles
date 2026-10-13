@@ -4,26 +4,40 @@ export LC_ALL=en_US.UTF-8
 export EDITOR=vim
 
 
-# Homebrew behavior
+# Homebrew: load whichever default prefix this Mac has — /opt/homebrew on
+# Apple silicon, /usr/local on Intel. Only the default prefix gets bottles; a
+# custom one (~/homebrew) builds most formulae from source and is unsupported.
+# shellenv sets HOMEBREW_PREFIX, used below.
+for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+  if [[ -x $brew_bin ]]; then
+    eval "$("$brew_bin" shellenv zsh)"
+    break
+  fi
+done
+unset brew_bin
 export HOMEBREW_NO_ENV_HINTS=1
 
 
 # Ruby / build flags (environment)
-export LDFLAGS="-L$HOME/homebrew/opt/ruby/lib"
-export CPPFLAGS="-I$HOME/homebrew/opt/ruby/include"
-export PKG_CONFIG_PATH="$HOME/homebrew/opt/ruby/lib/pkgconfig"
+if [[ -n ${HOMEBREW_PREFIX:-} ]]; then
+  export LDFLAGS="-L$HOMEBREW_PREFIX/opt/ruby/lib"
+  export CPPFLAGS="-I$HOMEBREW_PREFIX/opt/ruby/include"
+  export PKG_CONFIG_PATH="$HOMEBREW_PREFIX/opt/ruby/lib/pkgconfig"
+fi
 
 
 # PATH (prefer a single export, ordered: user/bin > local tools > brew > system)
+# The brew entries are left unquoted on purpose: without Homebrew they expand
+# to nothing and drop out, instead of becoming "" (the current directory).
 path=(
-  "$HOME/homebrew/opt/node@24/bin"
+  ${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/opt/node@24/bin}
   "$HOME/bin"
   "$HOME/.local/bin"
   "$HOME/.yarn/bin"
   "$HOME/.config/yarn/global/node_modules/.bin"
-  "$HOME/homebrew/opt/ruby/bin"
-  "$HOME/homebrew/bin"
-  "$HOME/homebrew/sbin"
+  ${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/opt/ruby/bin}
+  ${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/bin}
+  ${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/sbin}
   $path
 )
 typeset -U path
