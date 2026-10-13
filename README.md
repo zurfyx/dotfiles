@@ -14,7 +14,7 @@ macOS dotfiles for two Macs, managed with chezmoi. The parts worth stealing: a t
 | VCS calls in the status bar can hang tmux redraws | [`bin/tmux-scm`](dot_local/bin/executable_tmux-scm), [`bin/tmux-metrics`](dot_local/bin/executable_tmux-metrics) | Serve a cached answer instantly, refresh detached in the background; git and Sapling |
 | Sensitive commands end up in shell history | `incognito()` in [`dot_zshrc`](dot_zshrc) | Drops into a shell that writes no history, marked in the prompt |
 | `$?` only reports the last stage of a pipeline | the pipestatus prompt in [`dot_zshrc`](dot_zshrc) | Prompt prints every stage's exit code, failures in color |
-| Claude Code's default statusline says nothing about context or quota | [`dot_claude/executable_statusline.sh`](dot_claude/executable_statusline.sh) | Statusline with context-window and quota bars |
+| Claude Code's default statusline says nothing about context, quota, or how many tokens a session has gone through | [`dot_claude/executable_statusline.sh`](dot_claude/executable_statusline.sh) | Statusline with context-window and quota bars, plus the session's tokens in and out, subagents included, summed incrementally from the transcripts by a detached refresh so no render waits on them |
 | Claude Code owns `~/.claude/settings.json` — it rewrites the file, installers add hooks to it, and it holds per-machine paths that cannot be published | [`dot_claude/modify_settings.json`](dot_claude/modify_settings.json) | Sets only the preferences worth carrying to a new machine, and leaves the rest of the file alone |
 | "Review this carefully" gets a coding agent to spawn three subagents, read the summaries, and declare victory | [`private_dot_codex/skills/exact_ultracode`](private_dot_codex/skills/exact_ultracode) | A Codex skill that forces a real fleet inside a budget: build mode (research, one-page brief, implementation by file ownership, verification, review) and audit mode (research, validation, fresh-context skeptics, gap round), with a binding roster, results in files, and a report that shows planned versus actual agents and wall-clock |
 
@@ -48,11 +48,12 @@ The source lives at `~/Code/dotfiles` (set via `sourceDir` in the config templat
 | [`dot_config/cmux/private_cmux.json`](dot_config/cmux/private_cmux.json) | `~/.config/cmux/cmux.json` | cmux terminal UI preferences, Computer Use on |
 | [`private_Library/Application Support/com.mitchellh.ghostty/config`](private_Library/Application%20Support/com.mitchellh.ghostty/config) | `~/Library/Application Support/com.mitchellh.ghostty/config` | Ghostty terminal config |
 | [`private_Library/Application Support/Code/User/`](private_Library/Application%20Support/Code/User) | `~/Library/Application Support/Code/User/` | VS Code settings and keybindings |
-| [`dot_claude/executable_statusline.sh`](dot_claude/executable_statusline.sh) | `~/.claude/statusline.sh` | Claude Code statusline |
+| [`dot_claude/executable_statusline.sh`](dot_claude/executable_statusline.sh) | `~/.claude/statusline.sh` | Claude Code statusline: context, prompt cache, cost, session token totals, quota |
 | [`dot_claude/modify_settings.json`](dot_claude/modify_settings.json) | part of `~/.claude/settings.json` | Claude Code preferences, merged into whatever is already there |
 | [`private_dot_codex/modify_private_config.toml`](private_dot_codex/modify_private_config.toml) | part of `~/.codex/config.toml` | Codex model preference and subagent concurrency, merged into the app-owned config |
 | [`private_dot_codex/skills/exact_ultracode/`](private_dot_codex/skills/exact_ultracode) | `~/.codex/skills/ultracode/` | The ultracode agent skill for Codex; `exact_` so a file removed here is removed there too |
 | [`.chezmoiscripts/`](.chezmoiscripts) | not installed | Setup scripts run by `chezmoi apply` |
+| [`tests/`](tests) | not installed | Tests run in CI, such as the statusline's token accounting |
 | [`.chezmoi.toml.tmpl`](.chezmoi.toml.tmpl) | `~/.config/chezmoi/chezmoi.toml` | Prompts for machine identity on first init |
 
 How chezmoi filenames map: `dot_` becomes a leading `.` on install,
@@ -86,6 +87,7 @@ Both are untracked and machine-local; private and work-specific config lives the
 
 - [gitleaks](https://github.com/gitleaks/gitleaks) runs as a pre-commit hook and in CI, with custom vocabulary rules on top of the defaults.
 - Commit identity is checked against a short allowed list, so a stray work account cannot author here.
+- [`tests/statusline.sh`](tests/statusline.sh) runs the statusline against synthetic transcripts in CI, on Linux and on macOS's bash 3.2.
 - The repo contains no secrets, no hostnames, no identity.
 
 ## License
