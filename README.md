@@ -45,9 +45,9 @@ The source lives at `~/Code/dotfiles` (set via `sourceDir` in the config templat
 | [`dot_gitconfig`](dot_gitconfig) | `~/.gitconfig` | Git config: aliases, and an include of `~/.gitconfig.local` |
 | [`dot_tmux.conf`](dot_tmux.conf) | `~/.tmux.conf` | tmux config and status-bar wiring |
 | [`dot_local/bin/`](dot_local/bin) | `~/.local/bin/` | Standalone scripts (the table above) |
-| [`dot_config/cmux/cmux.json`](dot_config/cmux/cmux.json) | `~/.config/cmux/cmux.json` | cmux terminal UI preferences |
-| [`Library/Application Support/com.mitchellh.ghostty/config`](Library/Application%20Support/com.mitchellh.ghostty/config) | same path under `~` | Ghostty terminal config |
-| [`Library/Application Support/Code/User/`](Library/Application%20Support/Code/User) | same path under `~` | VS Code settings and keybindings |
+| [`dot_config/cmux/private_cmux.json`](dot_config/cmux/private_cmux.json) | `~/.config/cmux/cmux.json` | cmux terminal UI preferences, Computer Use on |
+| [`private_Library/Application Support/com.mitchellh.ghostty/config`](private_Library/Application%20Support/com.mitchellh.ghostty/config) | `~/Library/Application Support/com.mitchellh.ghostty/config` | Ghostty terminal config |
+| [`private_Library/Application Support/Code/User/`](private_Library/Application%20Support/Code/User) | `~/Library/Application Support/Code/User/` | VS Code settings and keybindings |
 | [`dot_claude/executable_statusline.sh`](dot_claude/executable_statusline.sh) | `~/.claude/statusline.sh` | Claude Code statusline |
 | [`dot_claude/modify_settings.json`](dot_claude/modify_settings.json) | part of `~/.claude/settings.json` | Claude Code preferences, merged into whatever is already there |
 | [`private_dot_codex/modify_private_config.toml`](private_dot_codex/modify_private_config.toml) | part of `~/.codex/config.toml` | Codex model preference and subagent concurrency, merged into the app-owned config |
@@ -56,7 +56,7 @@ The source lives at `~/Code/dotfiles` (set via `sourceDir` in the config templat
 | [`.chezmoi.toml.tmpl`](.chezmoi.toml.tmpl) | `~/.config/chezmoi/chezmoi.toml` | Prompts for machine identity on first init |
 
 How chezmoi filenames map: `dot_` becomes a leading `.` on install,
-`private_` restricts access to the owner, `executable_` becomes `chmod +x`,
+`private_` restricts access to the owner (`~/Library` and cmux's config are created that way, so they stay `private_` here or an apply would loosen them), `executable_` becomes `chmod +x`,
 `modify_` marks a script that edits the existing file rather than replacing it,
 `exact_` on a directory removes anything in the installed directory that has no counterpart here,
 and a `.tmpl` suffix marks a Go template rendered with local data. `run_once_` scripts run a single time ever;

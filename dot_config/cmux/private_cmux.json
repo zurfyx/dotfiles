@@ -5,6 +5,9 @@
     "minimalMode" : true,
     "newWorkspacePlacement" : "top"
   },
+  "computerUse" : {
+    "enabled" : true
+  },
   "customSidebars" : {
     "renderer" : "inProcess"
   },
