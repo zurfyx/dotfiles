@@ -4,14 +4,14 @@
 {{- /*   agents.max_concurrent_threads_per_session subagents that may run at once     */ -}}
 {{- /*     (Codex defaults to 3; the ultracode skill runs its fleet in waves of this size) */ -}}
 {{- $config := .chezmoi.stdin -}}
-{{- $config = regexReplaceAll `(?m)^max_concurrent_threads_per_session\s*=.*\n?` $config "" -}}
-{{- if regexMatch `(?m)^\[agents\]\s*$` $config -}}
-{{- $config = regexReplaceAll `(?m)^\[agents\]\s*$` $config "[agents]\nmax_concurrent_threads_per_session = 11" -}}
+{{- $config = regexReplaceAll `(?m)^max_concurrent_threads_per_session[ \t]*=.*\n?` $config "" -}}
+{{- if regexMatch `(?m)^\[agents\][ \t]*$` $config -}}
+{{- $config = regexReplaceAll `(?m)^\[agents\][ \t]*$` $config "[agents]\nmax_concurrent_threads_per_session = 11" -}}
 {{- else -}}
 {{- $config = printf "%s\n[agents]\nmax_concurrent_threads_per_session = 11\n" (trimSuffix "\n" $config) -}}
 {{- end -}}
-{{- if regexMatch `(?m)^model\s*=` $config -}}
-{{ regexReplaceAll `(?m)^model\s*=.*$` $config `model = "gpt-5.6-sol[1m]"` }}
+{{- if regexMatch `(?m)^model[ \t]*=` $config -}}
+{{ regexReplaceAll `(?m)^model[ \t]*=.*$` $config `model = "gpt-5.6-sol[1m]"` }}
 {{- else -}}
 model = "gpt-5.6-sol[1m]"
 {{ $config }}
