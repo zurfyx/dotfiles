@@ -49,7 +49,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: install shellcheck and zsh
-        run: sudo apt-get update && sudo apt-get install -y shellcheck zsh
+        # shellcheck already ships with the runner image (0.9.0); in practice
+        # only zsh is installed here. Two deliberate details:
+        #   * Third-party sources are dropped first. The image ships a Google
+        #     Chrome apt repo whose CDN intermittently serves a Packages.gz
+        #     that does not match its own Release index, and `apt-get update`
+        #     then exits 100 — failing this job for a reason unrelated to this
+        #     repo. It clears on Google's side within hours, but it recurs.
+        #   * A partial update is tolerated. apt says it itself: "Some index
+        #     files failed to download. They have been ignored, or old ones
+        #     used instead." The Ubuntu indexes — the only ones these packages
+        #     come from — fetch normally, so a non-zero update is not fatal
+        #     here. The install below is what actually gates the step.
+        run: |
+          set -eu
+          sudo rm -f /etc/apt/sources.list.d/*google* /etc/apt/sources.list.d/*chrome* || true
+          sudo apt-get update -qq || true
+          sudo apt-get install -y shellcheck zsh
+          shellcheck --version | sed -n 2p
+          zsh --version
       - name: lint every shell file, discovered by shebang
         run: |
           set -euo pipefail
