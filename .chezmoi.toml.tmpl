@@ -1,5 +1,12 @@
 sourceDir = "{{ .chezmoi.homeDir }}/Code/dotfiles"
 
+# Everything chezmoi writes is owner-only: files 0600, executables and
+# directories 0700. macOS creates ~/Library and ~/Library/Application Support
+# that way, and apps keep their config there, so the default 022 umask would
+# loosen them to 0755 on every apply. One rule here instead of a private_
+# prefix on each path.
+umask = 0o077
+
 [git]
     autoCommit = false
     autoPush = false
