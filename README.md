@@ -16,7 +16,7 @@ macOS dotfiles for two Macs, managed with chezmoi. The parts worth stealing: a t
 | `$?` only reports the last stage of a pipeline | the pipestatus prompt in [`dot_zshrc`](dot_zshrc) | Prompt prints every stage's exit code, failures in color |
 | Claude Code's default statusline says nothing about context, quota, or how many tokens a session has gone through | [`dot_claude/executable_statusline.sh`](dot_claude/executable_statusline.sh) | Statusline with context-window and quota bars, plus the session's tokens in and out, subagents included, summed incrementally from the transcripts by a detached refresh so no render waits on them |
 | Claude Code owns `~/.claude/settings.json` — it rewrites the file, installers add hooks to it, and it holds per-machine paths that cannot be published | [`dot_claude/modify_settings.json`](dot_claude/modify_settings.json) | Sets only the preferences worth carrying to a new machine, and leaves the rest of the file alone |
-| "Review this carefully" gets a coding agent to spawn three subagents, read the summaries, and declare victory | [`private_dot_codex/skills/exact_ultracode`](private_dot_codex/skills/exact_ultracode) | A Codex skill that forces a real fleet inside a budget: build mode (research, one-page brief, implementation by file ownership, verification, review) and audit mode (research, validation, fresh-context skeptics, gap round), with a binding roster, results in files, and a report that shows planned versus actual agents and wall-clock |
+| "Review this carefully" gets a coding agent to spawn three subagents, read the summaries, and declare victory | [`dot_codex/skills/exact_ultracode`](dot_codex/skills/exact_ultracode) | A Codex skill that forces a real fleet inside a budget: build mode (research, one-page brief, implementation by file ownership, verification, review) and audit mode (research, validation, fresh-context skeptics, gap round), with a binding roster, results in files, and a report that shows planned versus actual agents and wall-clock |
 
 ## Install
 
@@ -45,29 +45,30 @@ The source lives at `~/Code/dotfiles` (set via `sourceDir` in the config templat
 | [`dot_gitconfig`](dot_gitconfig) | `~/.gitconfig` | Git config: aliases, and an include of `~/.gitconfig.local` |
 | [`dot_tmux.conf`](dot_tmux.conf) | `~/.tmux.conf` | tmux config and status-bar wiring |
 | [`dot_local/bin/`](dot_local/bin) | `~/.local/bin/` | Standalone scripts (the table above) |
-| [`dot_config/cmux/private_cmux.json`](dot_config/cmux/private_cmux.json) | `~/.config/cmux/cmux.json` | cmux terminal UI preferences, Computer Use on |
-| [`private_Library/Application Support/com.mitchellh.ghostty/config`](private_Library/Application%20Support/com.mitchellh.ghostty/config) | `~/Library/Application Support/com.mitchellh.ghostty/config` | Ghostty terminal config |
-| [`private_Library/Application Support/Code/User/`](private_Library/Application%20Support/Code/User) | `~/Library/Application Support/Code/User/` | VS Code settings and keybindings |
+| [`dot_config/cmux/cmux.json`](dot_config/cmux/cmux.json) | `~/.config/cmux/cmux.json` | cmux terminal UI preferences, Computer Use on |
+| [`Library/Application Support/com.mitchellh.ghostty/config`](Library/Application%20Support/com.mitchellh.ghostty/config) | `~/Library/Application Support/com.mitchellh.ghostty/config` | Ghostty terminal config |
+| [`Library/Application Support/Code/User/`](Library/Application%20Support/Code/User) | `~/Library/Application Support/Code/User/` | VS Code settings and keybindings |
 | [`dot_claude/executable_statusline.sh`](dot_claude/executable_statusline.sh) | `~/.claude/statusline.sh` | Claude Code statusline: context, prompt cache, cost, session token totals, quota |
 | [`dot_claude/modify_settings.json`](dot_claude/modify_settings.json) | part of `~/.claude/settings.json` | Claude Code preferences, merged into whatever is already there |
-| [`private_dot_codex/modify_private_config.toml`](private_dot_codex/modify_private_config.toml) | part of `~/.codex/config.toml` | Codex model preference and subagent concurrency, merged into the app-owned config |
-| [`private_dot_codex/skills/exact_ultracode/`](private_dot_codex/skills/exact_ultracode) | `~/.codex/skills/ultracode/` | The ultracode agent skill for Codex; `exact_` so a file removed here is removed there too |
+| [`dot_codex/modify_config.toml`](dot_codex/modify_config.toml) | part of `~/.codex/config.toml` | Codex model preference and subagent concurrency, merged into the app-owned config |
+| [`dot_codex/skills/exact_ultracode/`](dot_codex/skills/exact_ultracode) | `~/.codex/skills/ultracode/` | The ultracode agent skill for Codex; `exact_` so a file removed here is removed there too |
 | [`.chezmoiscripts/`](.chezmoiscripts) | not installed | Setup scripts run by `chezmoi apply` |
 | [`tests/`](tests) | not installed | Tests run in CI, such as the statusline's token accounting |
-| [`.chezmoi.toml.tmpl`](.chezmoi.toml.tmpl) | `~/.config/chezmoi/chezmoi.toml` | Prompts for machine identity on first init |
+| [`.chezmoi.toml.tmpl`](.chezmoi.toml.tmpl) | `~/.config/chezmoi/chezmoi.toml` | Points chezmoi at this directory and makes everything it writes owner-only |
 
 How chezmoi filenames map: `dot_` becomes a leading `.` on install,
-`private_` restricts access to the owner (`~/Library` and cmux's config are created that way, so they stay `private_` here or an apply would loosen them), `executable_` becomes `chmod +x`,
+`executable_` becomes `chmod +x`,
 `modify_` marks a script that edits the existing file rather than replacing it,
 `exact_` on a directory removes anything in the installed directory that has no counterpart here,
 and a `.tmpl` suffix marks a Go template rendered with local data. `run_once_` scripts run a single time ever;
 `run_onchange_` scripts run whenever their content changes.
 Anything under `.chezmoiscripts/` runs during `chezmoi apply` but is never installed to `$HOME`.
 `symlink_` files hold a link target rather than content.
+No file here uses `private_`: the `umask` in `.chezmoi.toml.tmpl` makes everything chezmoi writes owner-only (files 0600, directories and executables 0700), because macOS creates `~/Library` and `~/Library/Application Support` that way and the default umask would loosen them to 0755.
 
 ## What's parameterized and why
 
-Almost nothing. `chezmoi init` asks no questions, and the repo has three templates: `.chezmoi.toml.tmpl`, which just points chezmoi at this directory; `dot_claude/modify_settings.json`, which sets a handful of keys in a file the application itself owns; and `private_dot_codex/modify_private_config.toml`, which does the same for the Codex model preference and subagent concurrency. Names, aliases, paths, font sizes, my email — all literal values sitting in the files where you can read them.
+Almost nothing. `chezmoi init` asks no questions, and the repo has three templates: `.chezmoi.toml.tmpl`, which points chezmoi at this directory and sets its umask; `dot_claude/modify_settings.json`, which sets a handful of keys in a file the application itself owns; and `dot_codex/modify_config.toml`, which does the same for the Codex model preference and subagent concurrency. Names, aliases, paths, font sizes, my email — all literal values sitting in the files where you can read them.
 
 A value leaves a tracked file for exactly two reasons:
 
