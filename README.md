@@ -13,6 +13,7 @@ macOS dotfiles for two Macs, managed with chezmoi. The parts worth stealing: a t
 | macOS update restarts reopen every app, regardless of the "reopen windows" checkbox | [`bin/preupdate`](dot_local/bin/executable_preupdate) | Quits apps cleanly before you hit Restart, so nothing comes back uninvited |
 | VCS calls in the status bar can hang tmux redraws | [`bin/tmux-scm`](dot_local/bin/executable_tmux-scm), [`bin/tmux-metrics`](dot_local/bin/executable_tmux-metrics) | Serve a cached answer instantly, refresh detached in the background; git and Sapling |
 | Sensitive commands end up in shell history | `incognito()` in [`dot_zshrc`](dot_zshrc) | Drops into a shell that writes no history, marked in the prompt |
+| Every package manager has its own upgrade command, so some tools quietly go stale | `upgrade()` in [`dot_zshrc`](dot_zshrc) | Runs `brew upgrade`, `npm update -g` and `rustup update`, skipping any tool that isn't installed and reporting which steps failed |
 | `$?` only reports the last stage of a pipeline | the pipestatus prompt in [`dot_zshrc`](dot_zshrc) | Prompt prints every stage's exit code, failures in color |
 | Claude Code's default statusline says nothing about context, quota, or how many tokens a session has gone through | [`dot_claude/executable_statusline.sh`](dot_claude/executable_statusline.sh) | Statusline with context-window and quota bars, plus the session's tokens in and out, subagents included, summed incrementally from the transcripts by a detached refresh so no render waits on them |
 | Claude Code owns `~/.claude/settings.json` — it rewrites the file, installers add hooks to it, and it holds per-machine paths that cannot be published | [`dot_claude/modify_settings.json`](dot_claude/modify_settings.json) | Sets only the preferences worth carrying to a new machine, and leaves the rest of the file alone |
@@ -40,7 +41,7 @@ The source lives at `~/Code/dotfiles` (set via `sourceDir` in the config templat
 
 | Repo | Installed | What |
 |---|---|---|
-| [`dot_zshrc`](dot_zshrc) | `~/.zshrc` | Interactive shell: prompt (pipestatus), aliases, `incognito()` |
+| [`dot_zshrc`](dot_zshrc) | `~/.zshrc` | Interactive shell: prompt (pipestatus), aliases, `incognito()`, `upgrade()` |
 | [`dot_zprofile`](dot_zprofile) | `~/.zprofile` | Login shell: PATH and environment |
 | [`dot_gitconfig`](dot_gitconfig) | `~/.gitconfig` | Git config: aliases, and an include of `~/.gitconfig.local` |
 | [`dot_tmux.conf`](dot_tmux.conf) | `~/.tmux.conf` | tmux config and status-bar wiring |
