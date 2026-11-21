@@ -105,5 +105,29 @@ brew() {
   return $ret
 }
 
+# upgrade -> update everything this machine happens to have: Homebrew, global npm
+# packages, Rust toolchains. Each step is skipped if the tool is absent, and a
+# failure doesn't stop the rest; the exit code is non-zero if any step failed.
+# `brew` goes through the wrapper above, so tailscaled-resync still runs.
+upgrade() {
+  local failed=()
+  if command -v brew >/dev/null 2>&1; then
+    print -P "%F{blue}==> brew upgrade%f"
+    brew upgrade || failed+=(brew)
+  fi
+  if command -v npm >/dev/null 2>&1; then
+    print -P "%F{blue}==> npm update -g%f"
+    npm update -g || failed+=(npm)
+  fi
+  if command -v rustup >/dev/null 2>&1; then
+    print -P "%F{blue}==> rustup update%f"
+    rustup update || failed+=(rustup)
+  fi
+  if (( ${#failed} )); then
+    print -u2 -P "%F{red}upgrade: failed: ${failed[*]}%f"
+    return 1
+  fi
+}
+
 # Machine-local overrides (private aliases, employer config). Never tracked.
 [[ -r "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
